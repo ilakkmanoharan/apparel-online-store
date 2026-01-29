@@ -2,7 +2,7 @@
 /**
  * Create GitHub Issues from local markdown files in issues/.
  *
- * - Scans issues/*/*.md (one folder per issue, e.g. issue1/issue1.md).
+ * - Scans issues/<folder>/<file>.md (one folder per issue, e.g. issue1/issue1.md).
  * - Skips issues/README.md.
  * - Title: first line that starts with "# " (heading stripped).
  * - Body: full file content.
