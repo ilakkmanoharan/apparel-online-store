@@ -1,0 +1,50 @@
+{
+  "name": "apparel-online-store",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "seed:women-fashion": "node scripts/upload-women-fashion.js",
+    "admin:create-user": "node scripts/create-admin-user.js"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "next": "^14.2.5",
+    "firebase": "^10.12.2",
+    "framer-motion": "^11.3.19",
+    "@headlessui/react": "^1.7.18",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-select": "^2.0.4",
+    "stripe": "^14.21.0",
+    "@stripe/stripe-js": "^4.0.0",
+    "zustand": "^4.5.2",
+    "@heroicons/react": "^2.1.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.4.0",
+    "firebase-admin": "^12.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3",
+    "@types/node": "^20.14.10",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/jest": "^29.5.12",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.4",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.5",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "@testing-library/react": "^14.2.1",
+    "@testing-library/jest-dom": "^6.4.2"
+  }
+}
