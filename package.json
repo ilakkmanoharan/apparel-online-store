@@ -11,6 +11,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "seed:women-fashion": "node scripts/upload-women-fashion.js",
+    "seed:fashion-products": "node scripts/seed-fashion-products.js",
     "admin:create-user": "node scripts/create-admin-user.js"
   },
   "dependencies": {

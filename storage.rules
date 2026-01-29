@@ -1,0 +1,23 @@
+rules_version = '2';
+// Allow public read for gallery and product images so the app can display them.
+// Uploads are done via Admin SDK (scripts); client write is not allowed here.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /women-fashion/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /men-fashion/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /kids-fashion/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
