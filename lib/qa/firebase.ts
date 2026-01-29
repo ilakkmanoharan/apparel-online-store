@@ -1,5 +1,7 @@
 import {
   collection,
+  doc,
+  getDoc,
   getDocs,
   query,
   where,
@@ -46,6 +48,18 @@ export async function getQAByProduct(
   return snap.docs.map((docSnap) =>
     mapDoc(docSnap.id, docSnap.data() as Record<string, unknown> & { askedAt?: { toDate?: () => Date }; answeredAt?: { toDate?: () => Date } })
   );
+}
+
+export async function getQAPairById(
+  productId: string,
+  qaId: string
+): Promise<QAPair | null> {
+  const ref = doc(db, COLLECTION, qaId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  const data = snap.data();
+  if (data.productId !== productId) return null;
+  return mapDoc(snap.id, data as Record<string, unknown> & { askedAt?: { toDate?: () => Date }; answeredAt?: { toDate?: () => Date } });
 }
 
 export async function addQuestion(
