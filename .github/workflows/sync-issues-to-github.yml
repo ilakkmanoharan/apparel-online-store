@@ -1,0 +1,34 @@
+# Create GitHub Issues from local markdown files in issues/ when you push.
+# Runs only when files under issues/ change.
+
+name: Sync issues to GitHub
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "issues/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Sync local issues to GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/sync-issues-to-github.js
