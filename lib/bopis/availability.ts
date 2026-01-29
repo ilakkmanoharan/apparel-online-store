@@ -1,5 +1,4 @@
 import { getStoreById } from "@/lib/stores/locations";
-import type { BOPISReservationStatus } from "@/types/store";
 
 // Mock: in production would check Firestore inventory per store
 export async function checkStoreAvailability(
