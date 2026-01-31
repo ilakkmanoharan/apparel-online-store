@@ -16,6 +16,12 @@
  * - successUrl?: string - Custom success redirect (must be same-origin)
  * - cancelUrl?: string - Custom cancel redirect (must be same-origin)
  *
+ * ## Rate Limiting (Phase 20)
+ * Prevents abuse by limiting checkout attempts:
+ * - 10 requests per minute per IP (configurable via CHECKOUT_RATE_LIMIT_IP_MAX)
+ * - 5 requests per minute per userId (configurable via CHECKOUT_RATE_LIMIT_USER_MAX)
+ * - Returns 429 with Retry-After header when limit exceeded
+ *
  * ## Idempotency (Phase 19)
  * To prevent duplicate checkout sessions on retry/double-submit:
  * - Send `Idempotency-Key` header OR `idempotencyKey` in request body
@@ -53,6 +59,7 @@ import { CompactCartItem } from "@/types/checkout";
 import { getProductById } from "@/lib/firebase/products";
 import { validatePromoCode } from "@/lib/promo/validatePromo";
 import { getCachedSession, setCachedSession } from "@/lib/checkout/idempotency";
+import { checkRateLimit, getClientIp } from "@/lib/checkout/rateLimit";
 
 /**
  * Request body for POST /api/checkout/stripe
@@ -114,6 +121,29 @@ function isSameOrigin(url: string, baseUrl: string): boolean {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CheckoutRequestBody;
+
+    // Phase 20: Rate limiting - prevent abuse by limiting checkout attempts.
+    // Check both IP and userId limits; returns 429 if either is exceeded.
+    const clientIp = getClientIp(req.headers);
+    const rateLimitResult = checkRateLimit(clientIp, body.userId);
+
+    if (rateLimitResult.isLimited) {
+      console.warn(
+        `[checkout/stripe] Rate limit exceeded for ${rateLimitResult.limitType}: ${
+          rateLimitResult.limitType === "ip" ? clientIp : body.userId
+        }`
+      );
+      return NextResponse.json(
+        { error: "Too many checkout attempts. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateLimitResult.retryAfterSeconds),
+            "X-RateLimit-Remaining": "0",
+          },
+        }
+      );
+    }
 
     // Phase 19: Idempotency check - prevent duplicate sessions on retry/double-submit.
     // Key can come from Idempotency-Key header or idempotencyKey in body.

@@ -22,6 +22,8 @@ jest.mock("@/lib/firebase/config", () => ({ db: {} }));
 
 // Import after mock
 import { POST } from "@/app/api/checkout/stripe/route";
+import { clearRateLimitStores } from "@/lib/checkout/rateLimit";
+import { clearCache } from "@/lib/checkout/idempotency";
 
 const mockCartItem = {
   product: {
@@ -60,6 +62,9 @@ describe("Gap: Stripe session metadata", () => {
     // Default: product exists in DB
     mockGetProductById.mockClear();
     mockGetProductById.mockResolvedValue(mockCartItem.product);
+    // Clear rate limit and idempotency stores to prevent test interference
+    clearRateLimitStores();
+    clearCache();
   });
 
   it("POST /api/checkout/stripe includes userId, items, shippingAddress in session metadata", async () => {

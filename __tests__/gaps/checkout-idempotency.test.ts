@@ -32,6 +32,8 @@ import {
   setCachedSession,
 } from "@/lib/checkout/idempotency";
 
+import { clearRateLimitStores } from "@/lib/checkout/rateLimit";
+
 import { POST } from "@/app/api/checkout/stripe/route";
 
 const mockCartItem = {
@@ -64,6 +66,7 @@ describe("Checkout idempotency (Phase 19)", () => {
     mockGetProductById.mockClear();
     mockGetProductById.mockResolvedValue(mockCartItem.product);
     clearCache();
+    clearRateLimitStores();
   });
 
   describe("idempotency key from header", () => {
