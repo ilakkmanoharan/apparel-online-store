@@ -15,6 +15,7 @@
  * - idempotencyKey?: string - Unique key to prevent duplicate sessions
  * - successUrl?: string - Custom success redirect (must be same-origin)
  * - cancelUrl?: string - Custom cancel redirect (must be same-origin)
+ * - customerId?: string - Stripe customer ID to attach session and save payment method
  *
  * ## Rate Limiting (Phase 20)
  * Prevents abuse by limiting checkout attempts:
@@ -75,6 +76,7 @@ import { checkRateLimit, getClientIp } from "@/lib/checkout/rateLimit";
  * @property idempotencyKey - Optional key to prevent duplicate sessions.
  * @property successUrl - Optional custom success redirect (same-origin only).
  * @property cancelUrl - Optional custom cancel redirect (same-origin only).
+ * @property customerId - Optional Stripe customer ID to attach session and save payment method.
  */
 interface CheckoutRequestBody {
   items: CartItem[];
@@ -84,6 +86,11 @@ interface CheckoutRequestBody {
   idempotencyKey?: string;
   successUrl?: string;
   cancelUrl?: string;
+  /**
+   * Stripe customer ID (e.g., cus_xxx). Pass to attach session to customer
+   * and save payment method for future checkout.
+   */
+  customerId?: string;
 }
 
 const DEFAULT_SUCCESS_PATH = "/checkout/success";
@@ -412,6 +419,12 @@ export async function POST(req: NextRequest) {
     // Enable promotion code entry in Stripe checkout when a valid promo is provided
     if (validatedPromoCode) {
       sessionParams.allow_promotion_codes = true;
+    }
+
+    // Phase 24: Attach session to Stripe customer to save payment method for future checkout.
+    // Customer ID is validated by Stripe; invalid ID will return Stripe error.
+    if (body.customerId) {
+      sessionParams.customer = body.customerId;
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
