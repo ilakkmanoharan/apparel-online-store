@@ -83,6 +83,18 @@ export async function getOrdersForUser(userId: string): Promise<Order[]> {
   });
 }
 
+/**
+ * Phase 23: Get order by Stripe session ID.
+ * Used by success page to display order confirmation.
+ * The order ID is the same as the Stripe session ID.
+ */
+export async function getOrderByStripeSessionId(
+  sessionId: string
+): Promise<Order | null> {
+  // Order ID is the Stripe session ID (set in createOrUpdateOrderFromCheckoutSession)
+  return getOrderById(sessionId);
+}
+
 export async function handleStripeWebhookEvent(event: Stripe.Event) {
   switch (event.type) {
     case "checkout.session.completed": {
