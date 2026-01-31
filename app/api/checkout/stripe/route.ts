@@ -81,6 +81,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Validate userId when provided; must be non-empty string
+    if (body.userId != null) {
+      if (typeof body.userId !== "string" || !body.userId.trim()) {
+        return NextResponse.json(
+          { error: "Invalid userId: must be non-empty string" },
+          { status: 400 }
+        );
+      }
+    }
+
     const baseUrl = getBaseUrl();
 
     const lineItems = body.items.map((item) => ({

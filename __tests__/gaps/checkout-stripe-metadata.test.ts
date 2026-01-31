@@ -74,4 +74,59 @@ describe("Gap: Stripe session metadata", () => {
       })
     );
   });
+
+  it("returns 400 when userId is empty string", async () => {
+    const body = {
+      items: [mockCartItem],
+      userId: "",
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Invalid userId: must be non-empty string");
+  });
+
+  it("returns 400 when userId is whitespace-only", async () => {
+    const body = {
+      items: [mockCartItem],
+      userId: "   ",
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Invalid userId: must be non-empty string");
+  });
+
+  it("uses 'guest' in metadata when userId is omitted", async () => {
+    const body = {
+      items: [mockCartItem],
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    await POST(req);
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          userId: "guest",
+        }),
+      })
+    );
+  });
 });
