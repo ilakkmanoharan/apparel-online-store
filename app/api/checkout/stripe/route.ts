@@ -429,6 +429,18 @@ export async function POST(req: NextRequest) {
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
+    // Phase 25: Structured logging for analytics - no PII, only IDs and counts.
+    console.log(
+      JSON.stringify({
+        event: "checkout_session_created",
+        sessionId: session.id,
+        itemCount: body.items.length,
+        hasShipping: !!body.shippingAddress,
+        hasPromo: !!validatedPromoCode,
+        hasCustomer: !!body.customerId,
+      })
+    );
+
     // Phase 19: Store session in idempotency cache for future requests.
     // Only cache if an idempotency key was provided.
     if (idempotencyKey) {

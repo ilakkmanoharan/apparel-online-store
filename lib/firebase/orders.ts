@@ -300,6 +300,20 @@ async function createOrUpdateOrderFromCheckoutSession(
 
   await setDoc(ref, baseData, { merge: true });
 
+  // Phase 25: Structured logging for analytics - no PII, only IDs and counts.
+  console.log(
+    JSON.stringify({
+      event: "order_created",
+      orderId,
+      sessionId: session.id,
+      itemCount: items.length,
+      total: amountTotal,
+      status,
+      hasShipping: !!shippingAddress,
+      hasPromo: !!promotionCode,
+    })
+  );
+
   // Phase 16: Deduct inventory for order items.
   // Called after order is saved so payment is not lost even if deduction fails.
   // On failure, mark order as "needs_review" for manual intervention.
