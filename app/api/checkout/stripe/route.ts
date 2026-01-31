@@ -3,6 +3,30 @@ import { stripe } from "@/lib/stripe/server";
 import { CartItem, Address } from "@/types";
 import { getProductById } from "@/lib/firebase/products";
 import type { CheckoutMetadataItem } from "@/types/checkout";
+import { validatePromoCode } from "@/lib/promo/validatePromo";
+
+// In-memory idempotency cache; sufficient for single-instance deployments.
+// For multi-instance, replace with Redis or a shared store.
+const IDEMPOTENCY_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const idempotencyCache = new Map<string, { sessionId: string; url: string; createdAt: number }>();
+
+// Fixed-window rate limiter; sufficient for single-instance deployments.
+// For multi-instance, replace with Redis or an upstash rate-limit adapter.
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX = 10;
+const rateLimitStore = new Map<string, { count: number; windowStart: number }>();
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+  if (!entry || now - entry.windowStart >= RATE_LIMIT_WINDOW) {
+    rateLimitStore.set(key, { count: 1, windowStart: now });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
 
 /**
  * POST /api/checkout/stripe — creates a Stripe Checkout Session.
@@ -11,6 +35,9 @@ import type { CheckoutMetadataItem } from "@/types/checkout";
  *   items            CartItem[]   Required. Products, quantities, and selections.
  *   userId          string?      Optional. Authenticated user id; defaults to "guest".
  *   shippingAddress  Address?     Optional. Validated when present (see @/types Address).
+ *   promotionCode    string?      Optional. Validated against app promo rules; rejected if invalid/expired.
+ *   idempotencyKey   string?      Optional. Also read from Idempotency-Key header. Deduplicates session creates for 24 h.
+ *   customerId       string?      Optional. Stripe customer id; attaches session to customer and saves payment method.
  *   successUrl       string?      Optional. Must be same-origin; defaults to /checkout/success.
  *   cancelUrl        string?      Optional. Must be same-origin; defaults to /checkout/cancel.
  *
@@ -19,14 +46,18 @@ import type { CheckoutMetadataItem } from "@/types/checkout";
  *   items            string       JSON — compact array: [{ productId, quantity, selectedSize, selectedColor, price }].
  *                                 Webhook re-fetches full product details from DB. See lib/firebase/orders.ts.
  *   shippingAddress  string?      JSON of Address. Omitted when no address provided.
+ *   promotionCode    string?      Validated promo code. Omitted when none provided.
  *
  * Validation order: items shape → shipping address → userId → URL origin →
- *   product existence (parallel DB reads) → stock → price match.
+ *   product existence (parallel DB reads) → stock → price match → promo code.
  */
 interface CheckoutRequestBody {
   items: CartItem[];
   userId?: string;
   shippingAddress?: Address;
+  promotionCode?: string;
+  idempotencyKey?: string;
+  customerId?: string;
   successUrl?: string;
   cancelUrl?: string;
 }
@@ -42,6 +73,27 @@ function getBaseUrl() {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CheckoutRequestBody;
+
+    // Rate limit: 10 requests/min per userId (authenticated) or IP (guest).
+    const rateLimitKey = (body.userId && body.userId.trim())
+      ? `user:${body.userId.trim()}`
+      : `ip:${req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"}`;
+    if (!checkRateLimit(rateLimitKey)) {
+      return NextResponse.json(
+        { error: "Too many checkout attempts; please try again later" },
+        { status: 429, headers: { "Retry-After": "60" } }
+      );
+    }
+
+    // Idempotency: return cached session if the same key was used recently.
+    const idempotencyKey = req.headers.get("idempotency-key") || body.idempotencyKey;
+    if (idempotencyKey) {
+      const cached = idempotencyCache.get(idempotencyKey);
+      if (cached && Date.now() - cached.createdAt < IDEMPOTENCY_TTL) {
+        return NextResponse.json({ url: cached.url, id: cached.sessionId });
+      }
+      if (cached) idempotencyCache.delete(idempotencyKey);
+    }
 
     if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
       return NextResponse.json(
@@ -161,6 +213,20 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (body.promotionCode) {
+      const subtotal = body.items.reduce(
+        (sum, item, i) => sum + fetchedProducts[i]!.price * item.quantity,
+        0
+      );
+      const promoResult = validatePromoCode(body.promotionCode, subtotal);
+      if (!promoResult.valid) {
+        return NextResponse.json(
+          { error: promoResult.message || "Invalid or expired promotion code" },
+          { status: 400 }
+        );
+      }
+    }
+
     const lineItems = body.items.map((item, i) => ({
       price_data: {
         currency: "usd",
@@ -201,16 +267,38 @@ export async function POST(req: NextRequest) {
     if (body.shippingAddress) {
       metadata.shippingAddress = JSON.stringify(body.shippingAddress);
     }
+    if (body.promotionCode) {
+      metadata.promotionCode = body.promotionCode.trim().toUpperCase();
+    }
 
+    // Pass customerId to attach session to customer and save payment method for future checkout.
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
+      allow_promotion_codes: true,
+      ...(body.customerId && { customer: body.customerId }),
       line_items: lineItems,
       success_url:
         body.successUrl || `${baseUrl}${DEFAULT_SUCCESS_PATH}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: body.cancelUrl || `${baseUrl}${DEFAULT_CANCEL_PATH}`,
       metadata,
     });
+
+    if (idempotencyKey) {
+      idempotencyCache.set(idempotencyKey, {
+        sessionId: session.id,
+        url: session.url!,
+        createdAt: Date.now(),
+      });
+    }
+
+    console.log(JSON.stringify({
+      event: "checkout_session_created",
+      sessionId: session.id,
+      itemCount: body.items.length,
+      hasShipping: !!body.shippingAddress,
+      hasPromo: !!body.promotionCode,
+    }));
 
     return NextResponse.json({ url: session.url, id: session.id });
   } catch (error) {
