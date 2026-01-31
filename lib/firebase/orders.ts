@@ -1,3 +1,31 @@
+/**
+ * Orders Module - Firestore operations and Stripe webhook handling
+ *
+ * ## Stripe Webhook Integration
+ * handleStripeWebhookEvent() is called by the Stripe webhook endpoint when
+ * checkout.session.completed event is received. It creates/updates orders
+ * based on session metadata.
+ *
+ * ## Metadata Contract (from app/api/checkout/stripe/route.ts)
+ * The checkout route sends these metadata keys to Stripe:
+ * - userId: string - User ID or "guest" for guest checkout
+ * - items: string - JSON array of CompactCartItem (see below)
+ * - shippingAddress?: string - JSON serialized Address
+ *
+ * ## Compact Items Format
+ * Due to Stripe's 500-char limit per metadata value, items are stored as:
+ * [{ productId, quantity, selectedSize, selectedColor, price }]
+ *
+ * This module expands compact items by fetching full product details from DB.
+ * Price is preserved from checkout time (not re-fetched) to match paid amount.
+ *
+ * ## Error Handling
+ * - Missing metadata: Order created with guest/empty items, warning logged
+ * - Malformed JSON: Order created with status "needs_review", error logged
+ * - Product not found: Placeholder product created with checkout-time data
+ *
+ * @see app/api/checkout/stripe/route.ts - Checkout session creation
+ */
 import { db } from "./config";
 import {
   collection,
@@ -11,19 +39,10 @@ import {
 } from "firebase/firestore";
 import type Stripe from "stripe";
 import { Order, CartItem, Address, Product } from "@/types";
+import { CompactCartItem } from "@/types/checkout";
 import { getProductById } from "./products";
 
 const ordersCollection = collection(db, "orders");
-
-// Compact item format from checkout metadata (Stripe 500-char limit strategy).
-// Webhook expands these by fetching product details from DB.
-interface CompactCartItem {
-  productId: string;
-  quantity: number;
-  selectedSize: string;
-  selectedColor: string;
-  price: number; // Price at checkout time
-}
 
 export async function getOrderById(id: string): Promise<Order | null> {
   const ref = doc(ordersCollection, id);

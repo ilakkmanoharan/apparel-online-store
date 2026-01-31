@@ -11,6 +11,15 @@ jest.mock("@/lib/stripe/server", () => ({
   stripe: { checkout: { sessions: { create: (...args: unknown[]) => mockCreate(...args) } } },
 }));
 
+// Mock getProductById - by default returns the product from the cart item
+const mockGetProductById = jest.fn();
+jest.mock("@/lib/firebase/products", () => ({
+  getProductById: (...args: unknown[]) => mockGetProductById(...args),
+}));
+
+// Mock Firebase config to avoid initialization
+jest.mock("@/lib/firebase/config", () => ({ db: {} }));
+
 // Import after mock
 import { POST } from "@/app/api/checkout/stripe/route";
 
@@ -48,6 +57,9 @@ describe("Gap: Stripe session metadata", () => {
   beforeEach(() => {
     mockCreate.mockClear();
     mockCreate.mockResolvedValue({ id: "sess_1", url: "https://checkout.stripe.com/x" });
+    // Default: product exists in DB
+    mockGetProductById.mockClear();
+    mockGetProductById.mockResolvedValue(mockCartItem.product);
   });
 
   it("POST /api/checkout/stripe includes userId, items, shippingAddress in session metadata", async () => {
@@ -282,5 +294,188 @@ describe("Gap: Stripe session metadata", () => {
         cancel_url: "/my-cancel-page",
       })
     );
+  });
+
+  it("returns 400 when product does not exist in database", async () => {
+    mockGetProductById.mockResolvedValue(null);
+
+    const body = {
+      items: [mockCartItem],
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Product not found: p1");
+  });
+
+  it("validates all products in cart exist", async () => {
+    // First product exists, second doesn't
+    mockGetProductById
+      .mockResolvedValueOnce(mockCartItem.product)
+      .mockResolvedValueOnce(null);
+
+    const body = {
+      items: [
+        mockCartItem,
+        {
+          ...mockCartItem,
+          product: { ...mockCartItem.product, id: "nonexistent_product" },
+        },
+      ],
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Product not found: nonexistent_product");
+  });
+
+  it("returns 400 when product is out of stock", async () => {
+    mockGetProductById.mockResolvedValue({
+      ...mockCartItem.product,
+      inStock: false,
+      stockCount: 0,
+    });
+
+    const body = {
+      items: [mockCartItem],
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toContain("Insufficient stock for product p1");
+    expect(data.error).toContain("requested 1");
+    expect(data.error).toContain("available 0");
+  });
+
+  it("returns 400 when requested quantity exceeds stock", async () => {
+    mockGetProductById.mockResolvedValue({
+      ...mockCartItem.product,
+      inStock: true,
+      stockCount: 5,
+    });
+
+    const body = {
+      items: [{ ...mockCartItem, quantity: 10 }],
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe(
+      "Insufficient stock for product p1: requested 10, available 5"
+    );
+  });
+
+  it("allows checkout when stock is sufficient", async () => {
+    mockGetProductById.mockResolvedValue({
+      ...mockCartItem.product,
+      inStock: true,
+      stockCount: 10,
+    });
+
+    const body = {
+      items: [{ ...mockCartItem, quantity: 5 }],
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    await POST(req);
+
+    expect(mockCreate).toHaveBeenCalled();
+  });
+
+  it("returns 400 when client price does not match server price", async () => {
+    // Server has different price than client submitted
+    mockGetProductById.mockResolvedValue({
+      ...mockCartItem.product,
+      price: 39.99, // Server price is different
+    });
+
+    const body = {
+      items: [mockCartItem], // mockCartItem has price: 29.99
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Price mismatch for product p1: expected 39.99, got 29.99");
+  });
+
+  it("uses server price for Stripe line items", async () => {
+    const serverPrice = 29.99;
+    mockGetProductById.mockResolvedValue({
+      ...mockCartItem.product,
+      price: serverPrice,
+    });
+
+    const body = {
+      items: [mockCartItem],
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    await POST(req);
+
+    const callArgs = mockCreate.mock.calls[0][0];
+    expect(callArgs.line_items[0].price_data.unit_amount).toBe(
+      Math.round(serverPrice * 100)
+    );
+  });
+
+  it("uses server price in compact items metadata", async () => {
+    const serverPrice = 29.99;
+    mockGetProductById.mockResolvedValue({
+      ...mockCartItem.product,
+      price: serverPrice,
+    });
+
+    const body = {
+      items: [mockCartItem],
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    await POST(req);
+
+    const callArgs = mockCreate.mock.calls[0][0];
+    const parsedItems = JSON.parse(callArgs.metadata.items);
+    expect(parsedItems[0].price).toBe(serverPrice);
   });
 });

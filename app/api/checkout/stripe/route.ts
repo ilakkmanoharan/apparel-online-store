@@ -1,7 +1,59 @@
+/**
+ * Stripe Checkout Session API
+ *
+ * POST /api/checkout/stripe
+ *
+ * Creates a Stripe Checkout Session for cart payment. After successful payment,
+ * Stripe webhook calls lib/firebase/orders.ts to create the order.
+ *
+ * ## Request Body
+ * @see CheckoutRequestBody
+ * - items: CartItem[] (required) - Cart items with product, quantity, size, color
+ * - userId?: string - User ID or omit for guest checkout (defaults to "guest")
+ * - shippingAddress?: Address - Shipping address (validated if provided)
+ * - successUrl?: string - Custom success redirect (must be same-origin)
+ * - cancelUrl?: string - Custom cancel redirect (must be same-origin)
+ *
+ * ## Validation (returns 400 on failure)
+ * - Product must exist in database
+ * - Sufficient stock (quantity <= stockCount)
+ * - Price must match server price (prevents manipulation)
+ * - URLs must be same-origin (prevents open redirect)
+ *
+ * ## Stripe Metadata
+ * Metadata keys sent to Stripe (read by webhook to create order):
+ * - userId: string - User ID or "guest"
+ * - items: string - JSON array of compact items (see below)
+ * - shippingAddress?: string - JSON serialized Address (if provided)
+ *
+ * ## Compact Items Format (Stripe 500-char limit strategy)
+ * Instead of full CartItem[], metadata.items contains:
+ * [{ productId, quantity, selectedSize, selectedColor, price }]
+ *
+ * Webhook (lib/firebase/orders.ts) re-fetches full product details from DB.
+ * Price is stored at checkout time to preserve the paid amount.
+ *
+ * @see lib/firebase/orders.ts - handleStripeWebhookEvent for order creation
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { CartItem, Address } from "@/types";
+import { CompactCartItem } from "@/types/checkout";
+import { getProductById } from "@/lib/firebase/products";
 
+/**
+ * Request body for POST /api/checkout/stripe
+ *
+ * @property items - Cart items (required). Each item needs:
+ *   - product: { id, name, price, images?, sizes?, colors? }
+ *   - quantity: number (>= 1)
+ *   - selectedSize: string (must be in product.sizes if defined)
+ *   - selectedColor: string (must be in product.colors if defined)
+ * @property userId - Optional user ID. Omit for guest checkout.
+ * @property shippingAddress - Optional shipping address.
+ * @property successUrl - Optional custom success redirect (same-origin only).
+ * @property cancelUrl - Optional custom cancel redirect (same-origin only).
+ */
 interface CheckoutRequestBody {
   items: CartItem[];
   userId?: string;
@@ -116,16 +168,68 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Server-side validation: verify all products exist in database.
+    // Fetch in parallel for performance; reject if any product not found.
+    const productIds = body.items.map((item) => item.product.id);
+    const products = await Promise.all(productIds.map((id) => getProductById(id)));
+
+    for (let i = 0; i < products.length; i++) {
+      if (!products[i]) {
+        return NextResponse.json(
+          { error: `Product not found: ${productIds[i]}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Server-side validation: verify sufficient stock for each item.
+    // Uses inStock flag and stockCount from fetched products.
+    for (let i = 0; i < body.items.length; i++) {
+      const item = body.items[i];
+      const product = products[i]!;
+      const available = product.stockCount ?? 0;
+
+      if (!product.inStock || item.quantity > available) {
+        return NextResponse.json(
+          {
+            error: `Insufficient stock for product ${product.id}: requested ${item.quantity}, available ${available}`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Server-side validation: verify price matches server to prevent manipulation.
+    // Exact match required; no tolerance. Client must use current server price.
+    for (let i = 0; i < body.items.length; i++) {
+      const item = body.items[i];
+      const product = products[i]!;
+      const clientPrice = item.product.price;
+      const serverPrice = product.price;
+
+      if (clientPrice !== serverPrice) {
+        return NextResponse.json(
+          {
+            error: `Price mismatch for product ${product.id}: expected ${serverPrice}, got ${clientPrice}`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const baseUrl = getBaseUrl();
 
-    const lineItems = body.items.map((item) => ({
+    // Build Stripe line items using SERVER price (authoritative) for security.
+    // Even though we validated prices match, using server price ensures
+    // Stripe always charges the correct amount.
+    const lineItems = body.items.map((item, i) => ({
       price_data: {
         currency: "usd",
         product_data: {
-          name: item.product.name,
-          images: item.product.images?.slice(0, 1),
+          name: products[i]!.name,
+          images: products[i]!.images?.slice(0, 1),
         },
-        unit_amount: Math.round(item.product.price * 100),
+        unit_amount: Math.round(products[i]!.price * 100),
       },
       quantity: item.quantity,
     }));
@@ -138,13 +242,15 @@ export async function POST(req: NextRequest) {
     // - If compact items still exceed 500 chars, return 400 (cart too large).
     const metaUserId = body.userId?.trim() || "guest";
 
-    // Compact items: only essential fields for order creation
-    const compactItems = body.items.map((item) => ({
+    // Compact items: only essential fields for order creation.
+    // Uses SERVER price (authoritative) to preserve the actual paid amount.
+    // Type shared with webhook (lib/firebase/orders.ts) for consistency.
+    const compactItems: CompactCartItem[] = body.items.map((item, i) => ({
       productId: item.product.id,
       quantity: item.quantity,
       selectedSize: item.selectedSize,
       selectedColor: item.selectedColor,
-      price: item.product.price,
+      price: products[i]!.price,
     }));
     const itemsJson = JSON.stringify(compactItems);
 
