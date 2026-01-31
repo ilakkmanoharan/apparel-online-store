@@ -39,10 +39,51 @@ Checkout `POST /api/checkout/stripe` accepts `items` (and optionally `userId`, `
 
 ## Test
 
-- **Gap test:** `__tests__/gaps/checkout-stripe-metadata.test.ts` — asserts that `stripe.checkout.sessions.create` is called with `metadata` containing `userId`, `items`, `shippingAddress`. Fails until this issue is fixed.
+- **Gap test:** `__tests__/gaps/checkout-stripe-metadata.test.ts` — asserts that `stripe.checkout.sessions.create` is called with `metadata` containing `userId`, `items`, `shippingAddress`. ✅ **19 tests passing**
+- **Webhook test:** `__tests__/gaps/webhook-compact-items.test.ts` — asserts webhook correctly parses compact items and handles errors. ✅ **10 tests passing**
+
+---
+
+## Manual Verification Steps (E2E)
+
+1. **POST checkout with test data:**
+   ```bash
+   curl -X POST http://localhost:3000/api/checkout/stripe \
+     -H "Content-Type: application/json" \
+     -d '{"items":[{"product":{"id":"test-product","name":"Test","price":29.99,"images":[],"category":"test","sizes":["S"],"colors":["Red"],"inStock":true,"stockCount":10,"description":""},"quantity":1,"selectedSize":"S","selectedColor":"Red"}],"userId":"user_123","shippingAddress":{"id":"a1","fullName":"Jane Doe","street":"123 Main St","city":"Boston","state":"MA","zipCode":"02101","country":"US","isDefault":true}}'
+   ```
+
+2. **Complete payment in Stripe test mode** using the returned checkout URL.
+
+3. **Verify Firestore order document** has:
+   - `userId`: "user_123" (not "guest")
+   - `items`: Array with product details
+   - `shippingAddress`: Full address object
+   - `status`: "processing"
+   - `paymentStatus`: "paid"
+
+---
+
+## Sign-off Checklist
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1 | Core metadata pass-through (userId, items, shippingAddress) | ✅ |
+| 4 | userId validation and "guest" default | ✅ |
+| 5 | Stripe metadata size limits (500 chars per value) | ✅ |
+| 6 | Compact items format for webhook parsing | ✅ |
+| 7 | Success/cancel URL documentation and same-origin validation | ✅ |
+| 8 | Warning logs for missing metadata | ✅ |
+| 9 | Error handling for malformed metadata (needs_review status) | ✅ |
+| 10 | Server-side product existence validation | ✅ |
+| 11 | Stock validation (quantity vs stockCount) | ✅ |
+| 12 | Price validation (prevent client manipulation) | ✅ |
+| 13 | API contract documentation | ✅ |
+| 14 | Shared CompactCartItem type for consistency | ✅ |
+| 15 | Integration check and gap test | ✅ |
 
 ---
 
 ## Status
 
-Open.
+**✅ Resolved** — PR #13 merged 2026-01-31
