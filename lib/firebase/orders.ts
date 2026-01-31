@@ -42,6 +42,7 @@ import { Order, CartItem, Address, Product } from "@/types";
 import { CompactCartItem } from "@/types/checkout";
 import { getProductById } from "./products";
 import { deductForOrder } from "@/lib/inventory/deduct";
+import { sendOrderConfirmationEmail } from "@/lib/email/order-confirmation";
 
 const ordersCollection = collection(db, "orders");
 
@@ -272,6 +273,35 @@ async function createOrUpdateOrderFromCheckoutSession(
         { merge: true }
       );
     }
+  }
+
+  // Phase 17: Send order confirmation email.
+  // Uses customer_email or customer_details.email from Stripe session.
+  // Errors are logged but do not fail order creation.
+  const customerEmail =
+    session.customer_email || session.customer_details?.email;
+
+  if (customerEmail && !metadataParseError) {
+    try {
+      await sendOrderConfirmationEmail(orderId, customerEmail, {
+        items,
+        total: amountTotal,
+        shippingAddress,
+        orderDate: now,
+      });
+    } catch (error) {
+      console.error(
+        "[orders] Failed to send order confirmation email",
+        orderId,
+        error
+      );
+      // Do not fail order creation; email can be resent manually if needed
+    }
+  } else if (!customerEmail) {
+    console.warn(
+      "[orders] No customer email available for order confirmation",
+      orderId
+    );
   }
 }
 
