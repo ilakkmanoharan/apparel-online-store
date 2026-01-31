@@ -2,15 +2,18 @@
  * Orders Module - Firestore operations and Stripe webhook handling
  *
  * ## Stripe Webhook Integration
- * handleStripeWebhookEvent() is called by the Stripe webhook endpoint when
- * checkout.session.completed event is received. It creates/updates orders
- * based on session metadata.
+ * handleStripeWebhookEvent() is called by the Stripe webhook endpoint for:
+ * - checkout.session.completed: Create order from checkout session
+ * - charge.refunded: Update order status to refunded
+ * - charge.dispute.created: Update order status to disputed
  *
  * ## Metadata Contract (from app/api/checkout/stripe/route.ts)
  * The checkout route sends these metadata keys to Stripe:
  * - userId: string - User ID or "guest" for guest checkout
  * - items: string - JSON array of CompactCartItem (see below)
  * - shippingAddress?: string - JSON serialized Address
+ * - promotionCode?: string - Validated promo code (if applied)
+ * - promoDiscountPercent?: string - Discount percentage (if promo applied)
  *
  * ## Compact Items Format
  * Due to Stripe's 500-char limit per metadata value, items are stored as:
@@ -42,6 +45,8 @@ import { Order, CartItem, Address, Product } from "@/types";
 import { CompactCartItem } from "@/types/checkout";
 import { getProductById } from "./products";
 import { deductForOrder } from "@/lib/inventory/deduct";
+import { restoreForOrder } from "@/lib/inventory/restore";
+import { sendOrderConfirmationEmail } from "@/lib/email/order-confirmation";
 
 const ordersCollection = collection(db, "orders");
 
@@ -78,10 +83,41 @@ export async function getOrdersForUser(userId: string): Promise<Order[]> {
   });
 }
 
+/**
+ * Phase 23: Get order by Stripe session ID.
+ * Used by success page to display order confirmation.
+ * The order ID is the same as the Stripe session ID.
+ */
+export async function getOrderByStripeSessionId(
+  sessionId: string
+): Promise<Order | null> {
+  // Order ID is the Stripe session ID (set in createOrUpdateOrderFromCheckoutSession)
+  return getOrderById(sessionId);
+}
+
 export async function handleStripeWebhookEvent(event: Stripe.Event) {
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-    await createOrUpdateOrderFromCheckoutSession(session);
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      await createOrUpdateOrderFromCheckoutSession(session);
+      break;
+    }
+
+    case "charge.refunded": {
+      const charge = event.data.object as Stripe.Charge;
+      await handleChargeRefunded(charge);
+      break;
+    }
+
+    case "charge.dispute.created": {
+      const dispute = event.data.object as Stripe.Dispute;
+      await handleDisputeCreated(dispute);
+      break;
+    }
+
+    default:
+      // Unhandled event type - log for debugging
+      console.log(`[orders] Unhandled webhook event type: ${event.type}`);
   }
 }
 
@@ -228,6 +264,12 @@ async function createOrUpdateOrderFromCheckoutSession(
   // Determine order status: needs_review if metadata parse failed, otherwise processing
   const status = metadataParseError ? "needs_review" : "processing";
 
+  // Phase 18: Extract promotion code from metadata for order tracking
+  const promotionCode = session.metadata?.promotionCode || null;
+  const promoDiscountPercent = session.metadata?.promoDiscountPercent
+    ? Number(session.metadata.promoDiscountPercent)
+    : null;
+
   const baseData: Record<string, unknown> = {
     userId,
     items,
@@ -237,10 +279,19 @@ async function createOrUpdateOrderFromCheckoutSession(
     paymentMethod: "stripe",
     paymentStatus: session.payment_status === "paid" ? "paid" : "pending",
     stripeSessionId: session.id,
+    stripePaymentIntentId: session.payment_intent as string | null,
     stripeCustomerId: session.customer as string | null,
     createdAt: snap.exists() ? snap.data().createdAt : now,
     updatedAt: now,
   };
+
+  // Phase 18: Add promotion code to order for reporting/tracking
+  if (promotionCode) {
+    baseData.promotionCode = promotionCode;
+    if (promoDiscountPercent !== null) {
+      baseData.promoDiscountPercent = promoDiscountPercent;
+    }
+  }
 
   // Add flag for admin to filter orders with parse errors
   if (metadataParseError) {
@@ -248,6 +299,20 @@ async function createOrUpdateOrderFromCheckoutSession(
   }
 
   await setDoc(ref, baseData, { merge: true });
+
+  // Phase 25: Structured logging for analytics - no PII, only IDs and counts.
+  console.log(
+    JSON.stringify({
+      event: "order_created",
+      orderId,
+      sessionId: session.id,
+      itemCount: items.length,
+      total: amountTotal,
+      status,
+      hasShipping: !!shippingAddress,
+      hasPromo: !!promotionCode,
+    })
+  );
 
   // Phase 16: Deduct inventory for order items.
   // Called after order is saved so payment is not lost even if deduction fails.
@@ -273,5 +338,205 @@ async function createOrUpdateOrderFromCheckoutSession(
       );
     }
   }
+
+  // Phase 17: Send order confirmation email.
+  // Uses customer_email or customer_details.email from Stripe session.
+  // Errors are logged but do not fail order creation.
+  const customerEmail =
+    session.customer_email || session.customer_details?.email;
+
+  if (customerEmail && !metadataParseError) {
+    try {
+      await sendOrderConfirmationEmail(orderId, customerEmail, {
+        items,
+        total: amountTotal,
+        shippingAddress,
+        orderDate: now,
+      });
+    } catch (error) {
+      console.error(
+        "[orders] Failed to send order confirmation email",
+        orderId,
+        error
+      );
+      // Do not fail order creation; email can be resent manually if needed
+    }
+  } else if (!customerEmail) {
+    console.warn(
+      "[orders] No customer email available for order confirmation",
+      orderId
+    );
+  }
+}
+
+/**
+ * Find an order by Stripe payment intent ID.
+ * Used for refund and dispute handling.
+ */
+async function findOrderByPaymentIntentId(
+  paymentIntentId: string
+): Promise<{ id: string; data: Record<string, unknown> } | null> {
+  const q = query(
+    ordersCollection,
+    where("stripePaymentIntentId", "==", paymentIntentId)
+  );
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  const docSnap = snapshot.docs[0];
+  return { id: docSnap.id, data: docSnap.data() as Record<string, unknown> };
+}
+
+/**
+ * Phase 21: Handle charge.refunded webhook event.
+ * Updates order status to "refunded" or "partially_refunded".
+ * Phase 22: Restores inventory for full refunds.
+ */
+async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
+  const paymentIntentId = charge.payment_intent as string;
+
+  if (!paymentIntentId) {
+    console.warn(
+      "[orders] charge.refunded event missing payment_intent",
+      charge.id
+    );
+    return;
+  }
+
+  const order = await findOrderByPaymentIntentId(paymentIntentId);
+
+  if (!order) {
+    console.warn(
+      "[orders] No order found for payment_intent in charge.refunded",
+      paymentIntentId
+    );
+    return;
+  }
+
+  const now = new Date();
+  const refundedAmount = charge.amount_refunded / 100;
+  const totalAmount = charge.amount / 100;
+
+  // Determine if full or partial refund
+  const isFullRefund = charge.refunded && charge.amount_refunded === charge.amount;
+  const newStatus = isFullRefund ? "refunded" : "partially_refunded";
+
+  const ref = doc(ordersCollection, order.id);
+  await setDoc(
+    ref,
+    {
+      status: newStatus,
+      paymentStatus: isFullRefund ? "refunded" : "partially_refunded",
+      refundedAmount,
+      refundedAt: now,
+      updatedAt: now,
+    },
+    { merge: true }
+  );
+
+  console.log(
+    `[orders] Order ${order.id} marked as ${newStatus}:`,
+    `$${refundedAmount} of $${totalAmount} refunded`
+  );
+
+  // Phase 22: Restore inventory for full refunds.
+  // For partial refunds, inventory is not restored automatically
+  // (would require knowing which specific items were refunded).
+  if (isFullRefund) {
+    const orderItems = order.data.items as CartItem[] | undefined;
+
+    if (orderItems && orderItems.length > 0) {
+      try {
+        await restoreForOrder(orderItems);
+        console.log(
+          `[orders] Inventory restored for refunded order ${order.id}`
+        );
+      } catch (error) {
+        console.error(
+          "[orders] Failed to restore inventory for refunded order; marking for review",
+          order.id,
+          error
+        );
+        // Mark order for manual inventory review
+        await setDoc(
+          ref,
+          {
+            inventoryRestoreError: true,
+            updatedAt: new Date(),
+          },
+          { merge: true }
+        );
+      }
+    } else {
+      console.warn(
+        "[orders] Refunded order has no items to restore inventory",
+        order.id
+      );
+    }
+  }
+}
+
+/**
+ * Phase 21: Handle charge.dispute.created webhook event.
+ * Updates order status to "disputed" for support investigation.
+ */
+async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
+  const chargeId = dispute.charge as string;
+
+  if (!chargeId) {
+    console.warn(
+      "[orders] charge.dispute.created event missing charge",
+      dispute.id
+    );
+    return;
+  }
+
+  // Dispute has charge ID, not payment_intent directly.
+  // We need to find the order by looking up all orders and checking.
+  // For better performance, we could store chargeId on order during checkout,
+  // but for now we'll query by the payment_intent from the dispute's payment_intent field.
+  const paymentIntentId = dispute.payment_intent as string;
+
+  if (!paymentIntentId) {
+    console.warn(
+      "[orders] charge.dispute.created event missing payment_intent",
+      dispute.id
+    );
+    return;
+  }
+
+  const order = await findOrderByPaymentIntentId(paymentIntentId);
+
+  if (!order) {
+    console.warn(
+      "[orders] No order found for payment_intent in dispute",
+      paymentIntentId
+    );
+    return;
+  }
+
+  const now = new Date();
+  const ref = doc(ordersCollection, order.id);
+
+  await setDoc(
+    ref,
+    {
+      status: "disputed",
+      disputeId: dispute.id,
+      disputeReason: dispute.reason,
+      disputeAmount: dispute.amount / 100,
+      disputedAt: now,
+      updatedAt: now,
+    },
+    { merge: true }
+  );
+
+  console.log(
+    `[orders] Order ${order.id} marked as disputed:`,
+    `Dispute ${dispute.id}, reason: ${dispute.reason}, amount: $${dispute.amount / 100}`
+  );
 }
 

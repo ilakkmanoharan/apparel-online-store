@@ -11,13 +11,30 @@
  * - items: CartItem[] (required) - Cart items with product, quantity, size, color
  * - userId?: string - User ID or omit for guest checkout (defaults to "guest")
  * - shippingAddress?: Address - Shipping address (validated if provided)
+ * - promotionCode?: string - Promo code to validate and apply
+ * - idempotencyKey?: string - Unique key to prevent duplicate sessions
  * - successUrl?: string - Custom success redirect (must be same-origin)
  * - cancelUrl?: string - Custom cancel redirect (must be same-origin)
+ * - customerId?: string - Stripe customer ID to attach session and save payment method
+ *
+ * ## Rate Limiting (Phase 20)
+ * Prevents abuse by limiting checkout attempts:
+ * - 10 requests per minute per IP (configurable via CHECKOUT_RATE_LIMIT_IP_MAX)
+ * - 5 requests per minute per userId (configurable via CHECKOUT_RATE_LIMIT_USER_MAX)
+ * - Returns 429 with Retry-After header when limit exceeded
+ *
+ * ## Idempotency (Phase 19)
+ * To prevent duplicate checkout sessions on retry/double-submit:
+ * - Send `Idempotency-Key` header OR `idempotencyKey` in request body
+ * - Key should be unique per checkout attempt (e.g., client-generated UUID)
+ * - If same key is used within 24 hours, cached session is returned
+ * - After 24 hours, key expires and a new session can be created
  *
  * ## Validation (returns 400 on failure)
  * - Product must exist in database
  * - Sufficient stock (quantity <= stockCount)
  * - Price must match server price (prevents manipulation)
+ * - Promotion code must be valid (if provided)
  * - URLs must be same-origin (prevents open redirect)
  *
  * ## Stripe Metadata
@@ -25,6 +42,7 @@
  * - userId: string - User ID or "guest"
  * - items: string - JSON array of compact items (see below)
  * - shippingAddress?: string - JSON serialized Address (if provided)
+ * - promotionCode?: string - Validated promo code (if provided)
  *
  * ## Compact Items Format (Stripe 500-char limit strategy)
  * Instead of full CartItem[], metadata.items contains:
@@ -40,6 +58,9 @@ import { stripe } from "@/lib/stripe/server";
 import { CartItem, Address } from "@/types";
 import { CompactCartItem } from "@/types/checkout";
 import { getProductById } from "@/lib/firebase/products";
+import { validatePromoCode } from "@/lib/promo/validatePromo";
+import { getCachedSession, setCachedSession } from "@/lib/checkout/idempotency";
+import { checkRateLimit, getClientIp } from "@/lib/checkout/rateLimit";
 
 /**
  * Request body for POST /api/checkout/stripe
@@ -51,15 +72,25 @@ import { getProductById } from "@/lib/firebase/products";
  *   - selectedColor: string (must be in product.colors if defined)
  * @property userId - Optional user ID. Omit for guest checkout.
  * @property shippingAddress - Optional shipping address.
+ * @property promotionCode - Optional promo code to validate and apply.
+ * @property idempotencyKey - Optional key to prevent duplicate sessions.
  * @property successUrl - Optional custom success redirect (same-origin only).
  * @property cancelUrl - Optional custom cancel redirect (same-origin only).
+ * @property customerId - Optional Stripe customer ID to attach session and save payment method.
  */
 interface CheckoutRequestBody {
   items: CartItem[];
   userId?: string;
   shippingAddress?: Address;
+  promotionCode?: string;
+  idempotencyKey?: string;
   successUrl?: string;
   cancelUrl?: string;
+  /**
+   * Stripe customer ID (e.g., cus_xxx). Pass to attach session to customer
+   * and save payment method for future checkout.
+   */
+  customerId?: string;
 }
 
 const DEFAULT_SUCCESS_PATH = "/checkout/success";
@@ -97,6 +128,49 @@ function isSameOrigin(url: string, baseUrl: string): boolean {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CheckoutRequestBody;
+
+    // Phase 20: Rate limiting - prevent abuse by limiting checkout attempts.
+    // Check both IP and userId limits; returns 429 if either is exceeded.
+    const clientIp = getClientIp(req.headers);
+    const rateLimitResult = checkRateLimit(clientIp, body.userId);
+
+    if (rateLimitResult.isLimited) {
+      console.warn(
+        `[checkout/stripe] Rate limit exceeded for ${rateLimitResult.limitType}: ${
+          rateLimitResult.limitType === "ip" ? clientIp : body.userId
+        }`
+      );
+      return NextResponse.json(
+        { error: "Too many checkout attempts. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateLimitResult.retryAfterSeconds),
+            "X-RateLimit-Remaining": "0",
+          },
+        }
+      );
+    }
+
+    // Phase 19: Idempotency check - prevent duplicate sessions on retry/double-submit.
+    // Key can come from Idempotency-Key header or idempotencyKey in body.
+    const idempotencyKey =
+      req.headers.get("Idempotency-Key") || body.idempotencyKey;
+
+    if (idempotencyKey) {
+      const cached = getCachedSession(idempotencyKey);
+      if (cached) {
+        console.log(
+          "[checkout/stripe] Returning cached session for idempotency key:",
+          idempotencyKey
+        );
+        return NextResponse.json({
+          url: cached.url,
+          id: cached.sessionId,
+          cached: true,
+        });
+      }
+    }
 
     if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
       return NextResponse.json(
@@ -217,6 +291,29 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Calculate subtotal for promo validation (server prices)
+    const subtotal = body.items.reduce(
+      (sum, item, i) => sum + products[i]!.price * item.quantity,
+      0
+    );
+
+    // Phase 18: Validate promotion code if provided.
+    // Returns 400 if code is invalid, expired, or doesn't meet minimum order.
+    let validatedPromoCode: string | null = null;
+    let promoDiscountPercent: number | undefined;
+
+    if (body.promotionCode) {
+      const promoResult = validatePromoCode(body.promotionCode, subtotal);
+      if (!promoResult.valid) {
+        return NextResponse.json(
+          { error: promoResult.message || "Invalid or expired promotion code" },
+          { status: 400 }
+        );
+      }
+      validatedPromoCode = body.promotionCode.trim().toUpperCase();
+      promoDiscountPercent = promoResult.discountPercent;
+    }
+
     const baseUrl = getBaseUrl();
 
     // Build Stripe line items using SERVER price (authoritative) for security.
@@ -277,6 +374,14 @@ export async function POST(req: NextRequest) {
       metadata.shippingAddress = addressJson;
     }
 
+    // Add validated promo code to metadata for order tracking
+    if (validatedPromoCode) {
+      metadata.promotionCode = validatedPromoCode;
+      if (promoDiscountPercent !== undefined) {
+        metadata.promoDiscountPercent = String(promoDiscountPercent);
+      }
+    }
+
     // Validate client-provided URLs are same-origin to prevent open redirect
     if (body.successUrl && !isSameOrigin(body.successUrl, baseUrl)) {
       return NextResponse.json(
@@ -299,14 +404,48 @@ export async function POST(req: NextRequest) {
       body.successUrl || `${baseUrl}${DEFAULT_SUCCESS_PATH}?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = body.cancelUrl || `${baseUrl}${DEFAULT_CANCEL_PATH}`;
 
-    const session = await stripe.checkout.sessions.create({
+    // Phase 18: Enable Stripe promotion codes if a promo was validated.
+    // This allows the validated code to be applied at Stripe checkout.
+    // User may need to re-enter the code in Stripe UI (allow_promotion_codes).
+    const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata,
-    });
+    };
+
+    // Enable promotion code entry in Stripe checkout when a valid promo is provided
+    if (validatedPromoCode) {
+      sessionParams.allow_promotion_codes = true;
+    }
+
+    // Phase 24: Attach session to Stripe customer to save payment method for future checkout.
+    // Customer ID is validated by Stripe; invalid ID will return Stripe error.
+    if (body.customerId) {
+      sessionParams.customer = body.customerId;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
+
+    // Phase 25: Structured logging for analytics - no PII, only IDs and counts.
+    console.log(
+      JSON.stringify({
+        event: "checkout_session_created",
+        sessionId: session.id,
+        itemCount: body.items.length,
+        hasShipping: !!body.shippingAddress,
+        hasPromo: !!validatedPromoCode,
+        hasCustomer: !!body.customerId,
+      })
+    );
+
+    // Phase 19: Store session in idempotency cache for future requests.
+    // Only cache if an idempotency key was provided.
+    if (idempotencyKey) {
+      setCachedSession(idempotencyKey, session.id, session.url);
+    }
 
     return NextResponse.json({ url: session.url, id: session.id });
   } catch (error) {

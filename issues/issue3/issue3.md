@@ -41,6 +41,8 @@ Checkout `POST /api/checkout/stripe` accepts `items` (and optionally `userId`, `
 
 - **Gap test:** `__tests__/gaps/checkout-stripe-metadata.test.ts` — asserts that `stripe.checkout.sessions.create` is called with `metadata` containing `userId`, `items`, `shippingAddress`. ✅ **19 tests passing**
 - **Webhook test:** `__tests__/gaps/webhook-compact-items.test.ts` — asserts webhook correctly parses compact items and handles errors. ✅ **10 tests passing**
+- **Inventory test:** `__tests__/gaps/webhook-inventory-deduction.test.ts` — asserts inventory is deducted on order completion. ✅ **1 test passing**
+- **Email test:** `__tests__/gaps/order-confirmation-email.test.ts` — asserts order confirmation email is sent correctly. ✅ **11 tests passing**
 
 ---
 
@@ -81,6 +83,8 @@ Checkout `POST /api/checkout/stripe` accepts `items` (and optionally `userId`, `
 | 13 | API contract documentation | ✅ |
 | 14 | Shared CompactCartItem type for consistency | ✅ |
 | 15 | Integration check and gap test | ✅ |
+| 16 | Inventory deduction on order | ✅ |
+| 17 | Order confirmation email / receipt | ✅ |
 
 ---
 
