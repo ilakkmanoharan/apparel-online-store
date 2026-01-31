@@ -68,6 +68,19 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const SHIPPING_REQUIRED = ["fullName", "street", "city", "state", "zipCode", "country"] as const;
+    if (body.shippingAddress) {
+      for (const key of SHIPPING_REQUIRED) {
+        const value = body.shippingAddress[key];
+        if (typeof value !== "string" || !value.trim()) {
+          return NextResponse.json(
+            { error: `Invalid shippingAddress: ${key} is required` },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     const baseUrl = getBaseUrl();
 
     const lineItems = body.items.map((item) => ({
