@@ -41,6 +41,7 @@ import type Stripe from "stripe";
 import { Order, CartItem, Address, Product } from "@/types";
 import { CompactCartItem } from "@/types/checkout";
 import { getProductById } from "./products";
+import { deductForOrder } from "@/lib/inventory/deduct";
 
 const ordersCollection = collection(db, "orders");
 
@@ -247,5 +248,30 @@ async function createOrUpdateOrderFromCheckoutSession(
   }
 
   await setDoc(ref, baseData, { merge: true });
+
+  // Phase 16: Deduct inventory for order items.
+  // Called after order is saved so payment is not lost even if deduction fails.
+  // On failure, mark order as "needs_review" for manual intervention.
+  if (items.length > 0 && !metadataParseError) {
+    try {
+      await deductForOrder(items);
+    } catch (error) {
+      console.error(
+        "[orders] Failed to deduct inventory for order; marking for review",
+        orderId,
+        error
+      );
+      // Update order status to needs_review so admin can investigate
+      await setDoc(
+        ref,
+        {
+          status: "needs_review",
+          inventoryDeductionError: true,
+          updatedAt: new Date(),
+        },
+        { merge: true }
+      );
+    }
+  }
 }
 
