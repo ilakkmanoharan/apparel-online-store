@@ -12,8 +12,16 @@
  * - userId?: string - User ID or omit for guest checkout (defaults to "guest")
  * - shippingAddress?: Address - Shipping address (validated if provided)
  * - promotionCode?: string - Promo code to validate and apply
+ * - idempotencyKey?: string - Unique key to prevent duplicate sessions
  * - successUrl?: string - Custom success redirect (must be same-origin)
  * - cancelUrl?: string - Custom cancel redirect (must be same-origin)
+ *
+ * ## Idempotency (Phase 19)
+ * To prevent duplicate checkout sessions on retry/double-submit:
+ * - Send `Idempotency-Key` header OR `idempotencyKey` in request body
+ * - Key should be unique per checkout attempt (e.g., client-generated UUID)
+ * - If same key is used within 24 hours, cached session is returned
+ * - After 24 hours, key expires and a new session can be created
  *
  * ## Validation (returns 400 on failure)
  * - Product must exist in database
@@ -44,6 +52,7 @@ import { CartItem, Address } from "@/types";
 import { CompactCartItem } from "@/types/checkout";
 import { getProductById } from "@/lib/firebase/products";
 import { validatePromoCode } from "@/lib/promo/validatePromo";
+import { getCachedSession, setCachedSession } from "@/lib/checkout/idempotency";
 
 /**
  * Request body for POST /api/checkout/stripe
@@ -56,6 +65,7 @@ import { validatePromoCode } from "@/lib/promo/validatePromo";
  * @property userId - Optional user ID. Omit for guest checkout.
  * @property shippingAddress - Optional shipping address.
  * @property promotionCode - Optional promo code to validate and apply.
+ * @property idempotencyKey - Optional key to prevent duplicate sessions.
  * @property successUrl - Optional custom success redirect (same-origin only).
  * @property cancelUrl - Optional custom cancel redirect (same-origin only).
  */
@@ -64,6 +74,7 @@ interface CheckoutRequestBody {
   userId?: string;
   shippingAddress?: Address;
   promotionCode?: string;
+  idempotencyKey?: string;
   successUrl?: string;
   cancelUrl?: string;
 }
@@ -103,6 +114,26 @@ function isSameOrigin(url: string, baseUrl: string): boolean {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CheckoutRequestBody;
+
+    // Phase 19: Idempotency check - prevent duplicate sessions on retry/double-submit.
+    // Key can come from Idempotency-Key header or idempotencyKey in body.
+    const idempotencyKey =
+      req.headers.get("Idempotency-Key") || body.idempotencyKey;
+
+    if (idempotencyKey) {
+      const cached = getCachedSession(idempotencyKey);
+      if (cached) {
+        console.log(
+          "[checkout/stripe] Returning cached session for idempotency key:",
+          idempotencyKey
+        );
+        return NextResponse.json({
+          url: cached.url,
+          id: cached.sessionId,
+          cached: true,
+        });
+      }
+    }
 
     if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
       return NextResponse.json(
@@ -354,6 +385,12 @@ export async function POST(req: NextRequest) {
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
+
+    // Phase 19: Store session in idempotency cache for future requests.
+    // Only cache if an idempotency key was provided.
+    if (idempotencyKey) {
+      setCachedSession(idempotencyKey, session.id, session.url);
+    }
 
     return NextResponse.json({ url: session.url, id: session.id });
   } catch (error) {
