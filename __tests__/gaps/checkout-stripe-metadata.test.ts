@@ -205,4 +205,82 @@ describe("Gap: Stripe session metadata", () => {
     const data = await res.json();
     expect(data.error).toBe("Shipping address too large; please shorten field values");
   });
+
+  it("returns 400 when successUrl is not same-origin", async () => {
+    const body = {
+      items: [mockCartItem],
+      successUrl: "https://evil.com/steal-session",
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Invalid successUrl: must be same-origin");
+  });
+
+  it("returns 400 when cancelUrl is not same-origin", async () => {
+    const body = {
+      items: [mockCartItem],
+      cancelUrl: "https://evil.com/redirect",
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Invalid cancelUrl: must be same-origin");
+  });
+
+  it("allows same-origin successUrl and cancelUrl", async () => {
+    const body = {
+      items: [mockCartItem],
+      successUrl: "http://localhost:3000/custom-success?id={CHECKOUT_SESSION_ID}",
+      cancelUrl: "http://localhost:3000/custom-cancel",
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    await POST(req);
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success_url: "http://localhost:3000/custom-success?id={CHECKOUT_SESSION_ID}",
+        cancel_url: "http://localhost:3000/custom-cancel",
+      })
+    );
+  });
+
+  it("allows relative path URLs", async () => {
+    const body = {
+      items: [mockCartItem],
+      successUrl: "/my-success-page",
+      cancelUrl: "/my-cancel-page",
+    };
+    const req = new NextRequest("http://localhost/api/checkout/stripe", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    await POST(req);
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success_url: "/my-success-page",
+        cancel_url: "/my-cancel-page",
+      })
+    );
+  });
 });

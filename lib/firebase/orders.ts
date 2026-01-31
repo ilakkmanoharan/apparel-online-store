@@ -143,32 +143,77 @@ async function createOrUpdateOrderFromCheckoutSession(
   const snap = await getDoc(ref);
 
   const amountTotal = (session.amount_total ?? 0) / 100;
+  const now = new Date();
+
+  // Phase 8: Log warning when metadata is missing userId or items.
+  // This can happen with old sessions or misconfigured clients.
+  // Order is still created with fallback values (guest, empty items).
+  const metadataMissing =
+    !session.metadata ||
+    typeof session.metadata.userId === "undefined" ||
+    typeof session.metadata.items === "undefined";
+
+  if (metadataMissing) {
+    console.warn(
+      "[orders] Checkout session missing metadata; order created with guest/empty items",
+      session.id
+    );
+  }
+
   const userId = (session.metadata?.userId as string) || "guest";
 
-  const now = new Date();
+  // Phase 9: Malformed metadata handling.
+  // If JSON.parse fails, we save order with status "needs_review" and metadataParseError
+  // so payment is not lost; support can fix order details manually.
+  let items: CartItem[] = [];
+  let shippingAddress: Address | null = null;
+  let metadataParseError = false;
 
   // Parse items from metadata; support both compact and full formats.
   // Compact format: [{ productId, quantity, selectedSize, selectedColor, price }]
   // Full format (legacy): [{ product, quantity, selectedSize, selectedColor }]
-  let items: CartItem[] = [];
   if (session.metadata?.items) {
-    const parsedItems = JSON.parse(session.metadata.items) as unknown[];
-    if (isCompactFormat(parsedItems)) {
-      items = await expandCompactItems(parsedItems);
-    } else {
-      // Legacy full format - use as-is
-      items = parsedItems as CartItem[];
+    try {
+      const parsedItems = JSON.parse(session.metadata.items) as unknown[];
+      if (isCompactFormat(parsedItems)) {
+        items = await expandCompactItems(parsedItems);
+      } else {
+        // Legacy full format - use as-is
+        items = parsedItems as CartItem[];
+      }
+    } catch (error) {
+      console.error(
+        "[orders] Failed to parse metadata.items; marking order for review",
+        session.id,
+        error
+      );
+      metadataParseError = true;
     }
   }
 
-  const baseData = {
+  // Parse shipping address
+  if (session.metadata?.shippingAddress) {
+    try {
+      shippingAddress = JSON.parse(session.metadata.shippingAddress) as Address;
+    } catch (error) {
+      console.error(
+        "[orders] Failed to parse metadata.shippingAddress; marking order for review",
+        session.id,
+        error
+      );
+      metadataParseError = true;
+    }
+  }
+
+  // Determine order status: needs_review if metadata parse failed, otherwise processing
+  const status = metadataParseError ? "needs_review" : "processing";
+
+  const baseData: Record<string, unknown> = {
     userId,
     items,
     total: amountTotal,
-    shippingAddress: (session.metadata?.shippingAddress
-      ? (JSON.parse(session.metadata.shippingAddress) as Address)
-      : null) as Address | null,
-    status: "processing",
+    shippingAddress,
+    status,
     paymentMethod: "stripe",
     paymentStatus: session.payment_status === "paid" ? "paid" : "pending",
     stripeSessionId: session.id,
@@ -176,6 +221,11 @@ async function createOrUpdateOrderFromCheckoutSession(
     createdAt: snap.exists() ? snap.data().createdAt : now,
     updatedAt: now,
   };
+
+  // Add flag for admin to filter orders with parse errors
+  if (metadataParseError) {
+    baseData.metadataParseError = true;
+  }
 
   await setDoc(ref, baseData, { merge: true });
 }

@@ -17,8 +17,29 @@ const DEFAULT_CANCEL_PATH = "/checkout/cancel";
 // We use keys: userId, items, shippingAddress.
 const STRIPE_METADATA_VALUE_LIMIT = 500;
 
+/**
+ * Get base URL for success/cancel redirects.
+ * NEXT_PUBLIC_BASE_URL must be set in production for correct redirects.
+ * Falls back to localhost:3000 for local development.
+ */
 function getBaseUrl() {
   return process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+}
+
+/**
+ * Validate that a URL is same-origin to prevent open redirect vulnerabilities.
+ * Returns true if URL is same-origin or a relative path.
+ */
+function isSameOrigin(url: string, baseUrl: string): boolean {
+  // Allow relative paths
+  if (url.startsWith("/")) return true;
+  try {
+    const urlObj = new URL(url);
+    const baseObj = new URL(baseUrl);
+    return urlObj.origin === baseObj.origin;
+  } catch {
+    return false;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -150,13 +171,34 @@ export async function POST(req: NextRequest) {
       metadata.shippingAddress = addressJson;
     }
 
+    // Validate client-provided URLs are same-origin to prevent open redirect
+    if (body.successUrl && !isSameOrigin(body.successUrl, baseUrl)) {
+      return NextResponse.json(
+        { error: "Invalid successUrl: must be same-origin" },
+        { status: 400 }
+      );
+    }
+    if (body.cancelUrl && !isSameOrigin(body.cancelUrl, baseUrl)) {
+      return NextResponse.json(
+        { error: "Invalid cancelUrl: must be same-origin" },
+        { status: 400 }
+      );
+    }
+
+    // Build redirect URLs:
+    // - success_url includes {CHECKOUT_SESSION_ID} so success page can load order details
+    // - cancel_url points to checkout cancel page
+    // - Client can override with same-origin URLs if needed
+    const successUrl =
+      body.successUrl || `${baseUrl}${DEFAULT_SUCCESS_PATH}?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = body.cancelUrl || `${baseUrl}${DEFAULT_CANCEL_PATH}`;
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,
-      success_url:
-        body.successUrl || `${baseUrl}${DEFAULT_SUCCESS_PATH}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: body.cancelUrl || `${baseUrl}${DEFAULT_CANCEL_PATH}`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata,
     });
 

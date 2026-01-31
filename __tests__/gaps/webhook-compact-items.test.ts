@@ -208,3 +208,199 @@ describe("Webhook compact items expansion", () => {
     expect(savedData.items[1].product.price).toBe(19.99);
   });
 });
+
+describe("Webhook missing metadata handling", () => {
+  beforeEach(() => {
+    mockGetDoc.mockClear();
+    mockSetDoc.mockClear();
+    mockGetProductById.mockClear();
+    mockGetDoc.mockResolvedValue({ exists: () => false });
+  });
+
+  it("logs warning when metadata is missing userId", async () => {
+    const event: Stripe.Event = {
+      id: "evt_1",
+      object: "event",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_missing_userid",
+          metadata: {
+            items: JSON.stringify([]),
+            // userId is missing
+          },
+          amount_total: 1000,
+          payment_status: "paid",
+          customer: "cus_1",
+        } as Stripe.Checkout.Session,
+      },
+    } as Stripe.Event;
+
+    await handleStripeWebhookEvent(event);
+
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining("missing metadata"),
+      "cs_missing_userid"
+    );
+  });
+
+  it("logs warning when metadata is missing items", async () => {
+    const event: Stripe.Event = {
+      id: "evt_1",
+      object: "event",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_missing_items",
+          metadata: {
+            userId: "user_1",
+            // items is missing
+          },
+          amount_total: 1000,
+          payment_status: "paid",
+          customer: "cus_1",
+        } as Stripe.Checkout.Session,
+      },
+    } as Stripe.Event;
+
+    await handleStripeWebhookEvent(event);
+
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining("missing metadata"),
+      "cs_missing_items"
+    );
+  });
+
+  it("uses guest userId when metadata.userId is missing", async () => {
+    const event: Stripe.Event = {
+      id: "evt_1",
+      object: "event",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_no_userid",
+          metadata: {
+            items: JSON.stringify([]),
+          },
+          amount_total: 1000,
+          payment_status: "paid",
+          customer: "cus_1",
+        } as Stripe.Checkout.Session,
+      },
+    } as Stripe.Event;
+
+    await handleStripeWebhookEvent(event);
+
+    const savedData = mockSetDoc.mock.calls[0][1];
+    expect(savedData.userId).toBe("guest");
+  });
+});
+
+describe("Webhook malformed metadata handling", () => {
+  const originalError = console.error;
+
+  beforeAll(() => {
+    console.error = jest.fn();
+  });
+
+  afterAll(() => {
+    console.error = originalError;
+  });
+
+  beforeEach(() => {
+    mockGetDoc.mockClear();
+    mockSetDoc.mockClear();
+    mockGetProductById.mockClear();
+    mockGetDoc.mockResolvedValue({ exists: () => false });
+    (console.error as jest.Mock).mockClear();
+  });
+
+  it("sets status to needs_review when items JSON is malformed", async () => {
+    const event: Stripe.Event = {
+      id: "evt_1",
+      object: "event",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_malformed_items",
+          metadata: {
+            userId: "user_1",
+            items: "not valid json {{{",
+          },
+          amount_total: 2999,
+          payment_status: "paid",
+          customer: "cus_1",
+        } as Stripe.Checkout.Session,
+      },
+    } as Stripe.Event;
+
+    await handleStripeWebhookEvent(event);
+
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to parse metadata.items"),
+      "cs_malformed_items",
+      expect.any(Error)
+    );
+
+    const savedData = mockSetDoc.mock.calls[0][1];
+    expect(savedData.status).toBe("needs_review");
+    expect(savedData.metadataParseError).toBe(true);
+    expect(savedData.items).toEqual([]);
+  });
+
+  it("sets status to needs_review when shippingAddress JSON is malformed", async () => {
+    mockGetProductById.mockResolvedValue(mockProduct);
+
+    const compactItems = [
+      { productId: "p1", quantity: 1, selectedSize: "S", selectedColor: "Red", price: 29.99 },
+    ];
+
+    const event: Stripe.Event = {
+      id: "evt_1",
+      object: "event",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_malformed_address",
+          metadata: {
+            userId: "user_1",
+            items: JSON.stringify(compactItems),
+            shippingAddress: "invalid json <<<",
+          },
+          amount_total: 2999,
+          payment_status: "paid",
+          customer: "cus_1",
+        } as Stripe.Checkout.Session,
+      },
+    } as Stripe.Event;
+
+    await handleStripeWebhookEvent(event);
+
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to parse metadata.shippingAddress"),
+      "cs_malformed_address",
+      expect.any(Error)
+    );
+
+    const savedData = mockSetDoc.mock.calls[0][1];
+    expect(savedData.status).toBe("needs_review");
+    expect(savedData.metadataParseError).toBe(true);
+    expect(savedData.shippingAddress).toBeNull();
+  });
+
+  it("sets status to processing when metadata is valid", async () => {
+    mockGetProductById.mockResolvedValue(mockProduct);
+
+    const compactItems = [
+      { productId: "p1", quantity: 1, selectedSize: "S", selectedColor: "Red", price: 29.99 },
+    ];
+
+    const event = createCheckoutEvent(JSON.stringify(compactItems));
+
+    await handleStripeWebhookEvent(event);
+
+    const savedData = mockSetDoc.mock.calls[0][1];
+    expect(savedData.status).toBe("processing");
+    expect(savedData.metadataParseError).toBeUndefined();
+  });
+});
