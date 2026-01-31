@@ -2,9 +2,10 @@
  * Orders Module - Firestore operations and Stripe webhook handling
  *
  * ## Stripe Webhook Integration
- * handleStripeWebhookEvent() is called by the Stripe webhook endpoint when
- * checkout.session.completed event is received. It creates/updates orders
- * based on session metadata.
+ * handleStripeWebhookEvent() is called by the Stripe webhook endpoint for:
+ * - checkout.session.completed: Create order from checkout session
+ * - charge.refunded: Update order status to refunded
+ * - charge.dispute.created: Update order status to disputed
  *
  * ## Metadata Contract (from app/api/checkout/stripe/route.ts)
  * The checkout route sends these metadata keys to Stripe:
@@ -82,9 +83,28 @@ export async function getOrdersForUser(userId: string): Promise<Order[]> {
 }
 
 export async function handleStripeWebhookEvent(event: Stripe.Event) {
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-    await createOrUpdateOrderFromCheckoutSession(session);
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      await createOrUpdateOrderFromCheckoutSession(session);
+      break;
+    }
+
+    case "charge.refunded": {
+      const charge = event.data.object as Stripe.Charge;
+      await handleChargeRefunded(charge);
+      break;
+    }
+
+    case "charge.dispute.created": {
+      const dispute = event.data.object as Stripe.Dispute;
+      await handleDisputeCreated(dispute);
+      break;
+    }
+
+    default:
+      // Unhandled event type - log for debugging
+      console.log(`[orders] Unhandled webhook event type: ${event.type}`);
   }
 }
 
@@ -246,6 +266,7 @@ async function createOrUpdateOrderFromCheckoutSession(
     paymentMethod: "stripe",
     paymentStatus: session.payment_status === "paid" ? "paid" : "pending",
     stripeSessionId: session.id,
+    stripePaymentIntentId: session.payment_intent as string | null,
     stripeCustomerId: session.customer as string | null,
     createdAt: snap.exists() ? snap.data().createdAt : now,
     updatedAt: now,
@@ -319,5 +340,139 @@ async function createOrUpdateOrderFromCheckoutSession(
       orderId
     );
   }
+}
+
+/**
+ * Find an order by Stripe payment intent ID.
+ * Used for refund and dispute handling.
+ */
+async function findOrderByPaymentIntentId(
+  paymentIntentId: string
+): Promise<{ id: string; data: Record<string, unknown> } | null> {
+  const q = query(
+    ordersCollection,
+    where("stripePaymentIntentId", "==", paymentIntentId)
+  );
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  const docSnap = snapshot.docs[0];
+  return { id: docSnap.id, data: docSnap.data() as Record<string, unknown> };
+}
+
+/**
+ * Phase 21: Handle charge.refunded webhook event.
+ * Updates order status to "refunded" or "partially_refunded".
+ */
+async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
+  const paymentIntentId = charge.payment_intent as string;
+
+  if (!paymentIntentId) {
+    console.warn(
+      "[orders] charge.refunded event missing payment_intent",
+      charge.id
+    );
+    return;
+  }
+
+  const order = await findOrderByPaymentIntentId(paymentIntentId);
+
+  if (!order) {
+    console.warn(
+      "[orders] No order found for payment_intent in charge.refunded",
+      paymentIntentId
+    );
+    return;
+  }
+
+  const now = new Date();
+  const refundedAmount = charge.amount_refunded / 100;
+  const totalAmount = charge.amount / 100;
+
+  // Determine if full or partial refund
+  const isFullRefund = charge.refunded && charge.amount_refunded === charge.amount;
+  const newStatus = isFullRefund ? "refunded" : "partially_refunded";
+
+  const ref = doc(ordersCollection, order.id);
+  await setDoc(
+    ref,
+    {
+      status: newStatus,
+      paymentStatus: isFullRefund ? "refunded" : "partially_refunded",
+      refundedAmount,
+      refundedAt: now,
+      updatedAt: now,
+    },
+    { merge: true }
+  );
+
+  console.log(
+    `[orders] Order ${order.id} marked as ${newStatus}:`,
+    `$${refundedAmount} of $${totalAmount} refunded`
+  );
+}
+
+/**
+ * Phase 21: Handle charge.dispute.created webhook event.
+ * Updates order status to "disputed" for support investigation.
+ */
+async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
+  const chargeId = dispute.charge as string;
+
+  if (!chargeId) {
+    console.warn(
+      "[orders] charge.dispute.created event missing charge",
+      dispute.id
+    );
+    return;
+  }
+
+  // Dispute has charge ID, not payment_intent directly.
+  // We need to find the order by looking up all orders and checking.
+  // For better performance, we could store chargeId on order during checkout,
+  // but for now we'll query by the payment_intent from the dispute's payment_intent field.
+  const paymentIntentId = dispute.payment_intent as string;
+
+  if (!paymentIntentId) {
+    console.warn(
+      "[orders] charge.dispute.created event missing payment_intent",
+      dispute.id
+    );
+    return;
+  }
+
+  const order = await findOrderByPaymentIntentId(paymentIntentId);
+
+  if (!order) {
+    console.warn(
+      "[orders] No order found for payment_intent in dispute",
+      paymentIntentId
+    );
+    return;
+  }
+
+  const now = new Date();
+  const ref = doc(ordersCollection, order.id);
+
+  await setDoc(
+    ref,
+    {
+      status: "disputed",
+      disputeId: dispute.id,
+      disputeReason: dispute.reason,
+      disputeAmount: dispute.amount / 100,
+      disputedAt: now,
+      updatedAt: now,
+    },
+    { merge: true }
+  );
+
+  console.log(
+    `[orders] Order ${order.id} marked as disputed:`,
+    `Dispute ${dispute.id}, reason: ${dispute.reason}, amount: $${dispute.amount / 100}`
+  );
 }
 
