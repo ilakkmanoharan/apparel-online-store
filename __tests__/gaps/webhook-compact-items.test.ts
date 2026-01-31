@@ -404,3 +404,91 @@ describe("Webhook malformed metadata handling", () => {
     expect(savedData.metadataParseError).toBeUndefined();
   });
 });
+
+describe("Webhook promotion code handling (Phase 18)", () => {
+  beforeEach(() => {
+    mockGetDoc.mockClear();
+    mockSetDoc.mockClear();
+    mockGetProductById.mockClear();
+    mockGetDoc.mockResolvedValue({ exists: () => false });
+    mockGetProductById.mockResolvedValue(mockProduct);
+  });
+
+  it("stores promotionCode on order when present in metadata", async () => {
+    const compactItems = [
+      { productId: "p1", quantity: 1, selectedSize: "S", selectedColor: "Red", price: 29.99 },
+    ];
+
+    const event: Stripe.Event = {
+      id: "evt_1",
+      object: "event",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_with_promo",
+          metadata: {
+            userId: "user_1",
+            items: JSON.stringify(compactItems),
+            promotionCode: "SAVE10",
+            promoDiscountPercent: "10",
+          },
+          amount_total: 2699, // After discount
+          payment_status: "paid",
+          customer: "cus_1",
+        } as Stripe.Checkout.Session,
+      },
+    } as Stripe.Event;
+
+    await handleStripeWebhookEvent(event);
+
+    const savedData = mockSetDoc.mock.calls[0][1];
+    expect(savedData.promotionCode).toBe("SAVE10");
+    expect(savedData.promoDiscountPercent).toBe(10);
+  });
+
+  it("does not include promotionCode when not in metadata", async () => {
+    const compactItems = [
+      { productId: "p1", quantity: 1, selectedSize: "S", selectedColor: "Red", price: 29.99 },
+    ];
+
+    const event = createCheckoutEvent(JSON.stringify(compactItems));
+
+    await handleStripeWebhookEvent(event);
+
+    const savedData = mockSetDoc.mock.calls[0][1];
+    expect(savedData.promotionCode).toBeUndefined();
+    expect(savedData.promoDiscountPercent).toBeUndefined();
+  });
+
+  it("handles promotionCode without discount percent", async () => {
+    const compactItems = [
+      { productId: "p1", quantity: 1, selectedSize: "S", selectedColor: "Red", price: 29.99 },
+    ];
+
+    const event: Stripe.Event = {
+      id: "evt_1",
+      object: "event",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_promo_no_percent",
+          metadata: {
+            userId: "user_1",
+            items: JSON.stringify(compactItems),
+            promotionCode: "FREESHIP",
+            // No promoDiscountPercent - e.g., free shipping promo
+          },
+          amount_total: 2999,
+          payment_status: "paid",
+          customer: "cus_1",
+        } as Stripe.Checkout.Session,
+      },
+    } as Stripe.Event;
+
+    await handleStripeWebhookEvent(event);
+
+    const savedData = mockSetDoc.mock.calls[0][1];
+    expect(savedData.promotionCode).toBe("FREESHIP");
+    expect(savedData.promoDiscountPercent).toBeUndefined();
+  });
+});

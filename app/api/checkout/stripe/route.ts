@@ -11,6 +11,7 @@
  * - items: CartItem[] (required) - Cart items with product, quantity, size, color
  * - userId?: string - User ID or omit for guest checkout (defaults to "guest")
  * - shippingAddress?: Address - Shipping address (validated if provided)
+ * - promotionCode?: string - Promo code to validate and apply
  * - successUrl?: string - Custom success redirect (must be same-origin)
  * - cancelUrl?: string - Custom cancel redirect (must be same-origin)
  *
@@ -18,6 +19,7 @@
  * - Product must exist in database
  * - Sufficient stock (quantity <= stockCount)
  * - Price must match server price (prevents manipulation)
+ * - Promotion code must be valid (if provided)
  * - URLs must be same-origin (prevents open redirect)
  *
  * ## Stripe Metadata
@@ -25,6 +27,7 @@
  * - userId: string - User ID or "guest"
  * - items: string - JSON array of compact items (see below)
  * - shippingAddress?: string - JSON serialized Address (if provided)
+ * - promotionCode?: string - Validated promo code (if provided)
  *
  * ## Compact Items Format (Stripe 500-char limit strategy)
  * Instead of full CartItem[], metadata.items contains:
@@ -40,6 +43,7 @@ import { stripe } from "@/lib/stripe/server";
 import { CartItem, Address } from "@/types";
 import { CompactCartItem } from "@/types/checkout";
 import { getProductById } from "@/lib/firebase/products";
+import { validatePromoCode } from "@/lib/promo/validatePromo";
 
 /**
  * Request body for POST /api/checkout/stripe
@@ -51,6 +55,7 @@ import { getProductById } from "@/lib/firebase/products";
  *   - selectedColor: string (must be in product.colors if defined)
  * @property userId - Optional user ID. Omit for guest checkout.
  * @property shippingAddress - Optional shipping address.
+ * @property promotionCode - Optional promo code to validate and apply.
  * @property successUrl - Optional custom success redirect (same-origin only).
  * @property cancelUrl - Optional custom cancel redirect (same-origin only).
  */
@@ -58,6 +63,7 @@ interface CheckoutRequestBody {
   items: CartItem[];
   userId?: string;
   shippingAddress?: Address;
+  promotionCode?: string;
   successUrl?: string;
   cancelUrl?: string;
 }
@@ -217,6 +223,29 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Calculate subtotal for promo validation (server prices)
+    const subtotal = body.items.reduce(
+      (sum, item, i) => sum + products[i]!.price * item.quantity,
+      0
+    );
+
+    // Phase 18: Validate promotion code if provided.
+    // Returns 400 if code is invalid, expired, or doesn't meet minimum order.
+    let validatedPromoCode: string | null = null;
+    let promoDiscountPercent: number | undefined;
+
+    if (body.promotionCode) {
+      const promoResult = validatePromoCode(body.promotionCode, subtotal);
+      if (!promoResult.valid) {
+        return NextResponse.json(
+          { error: promoResult.message || "Invalid or expired promotion code" },
+          { status: 400 }
+        );
+      }
+      validatedPromoCode = body.promotionCode.trim().toUpperCase();
+      promoDiscountPercent = promoResult.discountPercent;
+    }
+
     const baseUrl = getBaseUrl();
 
     // Build Stripe line items using SERVER price (authoritative) for security.
@@ -277,6 +306,14 @@ export async function POST(req: NextRequest) {
       metadata.shippingAddress = addressJson;
     }
 
+    // Add validated promo code to metadata for order tracking
+    if (validatedPromoCode) {
+      metadata.promotionCode = validatedPromoCode;
+      if (promoDiscountPercent !== undefined) {
+        metadata.promoDiscountPercent = String(promoDiscountPercent);
+      }
+    }
+
     // Validate client-provided URLs are same-origin to prevent open redirect
     if (body.successUrl && !isSameOrigin(body.successUrl, baseUrl)) {
       return NextResponse.json(
@@ -299,14 +336,24 @@ export async function POST(req: NextRequest) {
       body.successUrl || `${baseUrl}${DEFAULT_SUCCESS_PATH}?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = body.cancelUrl || `${baseUrl}${DEFAULT_CANCEL_PATH}`;
 
-    const session = await stripe.checkout.sessions.create({
+    // Phase 18: Enable Stripe promotion codes if a promo was validated.
+    // This allows the validated code to be applied at Stripe checkout.
+    // User may need to re-enter the code in Stripe UI (allow_promotion_codes).
+    const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata,
-    });
+    };
+
+    // Enable promotion code entry in Stripe checkout when a valid promo is provided
+    if (validatedPromoCode) {
+      sessionParams.allow_promotion_codes = true;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     return NextResponse.json({ url: session.url, id: session.id });
   } catch (error) {

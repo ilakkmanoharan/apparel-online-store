@@ -11,6 +11,8 @@
  * - userId: string - User ID or "guest" for guest checkout
  * - items: string - JSON array of CompactCartItem (see below)
  * - shippingAddress?: string - JSON serialized Address
+ * - promotionCode?: string - Validated promo code (if applied)
+ * - promoDiscountPercent?: string - Discount percentage (if promo applied)
  *
  * ## Compact Items Format
  * Due to Stripe's 500-char limit per metadata value, items are stored as:
@@ -229,6 +231,12 @@ async function createOrUpdateOrderFromCheckoutSession(
   // Determine order status: needs_review if metadata parse failed, otherwise processing
   const status = metadataParseError ? "needs_review" : "processing";
 
+  // Phase 18: Extract promotion code from metadata for order tracking
+  const promotionCode = session.metadata?.promotionCode || null;
+  const promoDiscountPercent = session.metadata?.promoDiscountPercent
+    ? Number(session.metadata.promoDiscountPercent)
+    : null;
+
   const baseData: Record<string, unknown> = {
     userId,
     items,
@@ -242,6 +250,14 @@ async function createOrUpdateOrderFromCheckoutSession(
     createdAt: snap.exists() ? snap.data().createdAt : now,
     updatedAt: now,
   };
+
+  // Phase 18: Add promotion code to order for reporting/tracking
+  if (promotionCode) {
+    baseData.promotionCode = promotionCode;
+    if (promoDiscountPercent !== null) {
+      baseData.promoDiscountPercent = promoDiscountPercent;
+    }
+  }
 
   // Add flag for admin to filter orders with parse errors
   if (metadataParseError) {

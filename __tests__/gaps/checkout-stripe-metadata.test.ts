@@ -478,4 +478,139 @@ describe("Gap: Stripe session metadata", () => {
     const parsedItems = JSON.parse(callArgs.metadata.items);
     expect(parsedItems[0].price).toBe(serverPrice);
   });
+
+  // Phase 18: Promotion code tests
+  describe("promotionCode validation", () => {
+    it("accepts valid promotion code and stores in metadata", async () => {
+      const body = {
+        items: [mockCartItem],
+        promotionCode: "SAVE10",
+      };
+      const req = new NextRequest("http://localhost/api/checkout/stripe", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      await POST(req);
+
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            promotionCode: "SAVE10",
+            promoDiscountPercent: "10",
+          }),
+        })
+      );
+    });
+
+    it("enables allow_promotion_codes when promo code provided", async () => {
+      const body = {
+        items: [mockCartItem],
+        promotionCode: "SAVE10",
+      };
+      const req = new NextRequest("http://localhost/api/checkout/stripe", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      await POST(req);
+
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allow_promotion_codes: true,
+        })
+      );
+    });
+
+    it("returns 400 for invalid promotion code", async () => {
+      const body = {
+        items: [mockCartItem],
+        promotionCode: "INVALID_CODE",
+      };
+      const req = new NextRequest("http://localhost/api/checkout/stripe", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.error).toContain("Invalid");
+    });
+
+    it("returns 400 when promo code requires minimum order not met", async () => {
+      // SAVE20 requires minimum order of $50
+      const body = {
+        items: [mockCartItem], // Only $29.99
+        promotionCode: "SAVE20",
+      };
+      const req = new NextRequest("http://localhost/api/checkout/stripe", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.error).toContain("Minimum order");
+    });
+
+    it("normalizes promotion code to uppercase", async () => {
+      const body = {
+        items: [mockCartItem],
+        promotionCode: "save10", // lowercase
+      };
+      const req = new NextRequest("http://localhost/api/checkout/stripe", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      await POST(req);
+
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            promotionCode: "SAVE10",
+          }),
+        })
+      );
+    });
+
+    it("does not enable allow_promotion_codes when no promo code", async () => {
+      const body = {
+        items: [mockCartItem],
+      };
+      const req = new NextRequest("http://localhost/api/checkout/stripe", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      await POST(req);
+
+      const callArgs = mockCreate.mock.calls[0][0];
+      expect(callArgs.allow_promotion_codes).toBeUndefined();
+    });
+
+    it("does not include promotionCode in metadata when not provided", async () => {
+      const body = {
+        items: [mockCartItem],
+      };
+      const req = new NextRequest("http://localhost/api/checkout/stripe", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      await POST(req);
+
+      const callArgs = mockCreate.mock.calls[0][0];
+      expect(callArgs.metadata.promotionCode).toBeUndefined();
+    });
+  });
 });
