@@ -2,12 +2,13 @@
  * Gap: Checkout does not pass userId, items, shippingAddress in Stripe session metadata.
  * Issue: issues/issue3/issue3.md
  * ~2.5h: Add metadata to session in app/api/checkout/stripe/route.ts; webhook already reads it.
+ * @jest-environment node
  */
 import { NextRequest } from "next/server";
 
-const mockCreate = jest.fn().mockResolvedValue({ id: "sess_1", url: "https://checkout.stripe.com/x" });
+const mockCreate = jest.fn();
 jest.mock("@/lib/stripe/server", () => ({
-  stripe: { checkout: { sessions: { create: mockCreate } } },
+  stripe: { checkout: { sessions: { create: (...args: unknown[]) => mockCreate(...args) } } },
 }));
 
 // Import after mock
@@ -44,7 +45,10 @@ const mockAddress = {
 };
 
 describe("Gap: Stripe session metadata", () => {
-  beforeEach(() => mockCreate.mockClear());
+  beforeEach(() => {
+    mockCreate.mockClear();
+    mockCreate.mockResolvedValue({ id: "sess_1", url: "https://checkout.stripe.com/x" });
+  });
 
   it("POST /api/checkout/stripe includes userId, items, shippingAddress in session metadata", async () => {
     const body = {

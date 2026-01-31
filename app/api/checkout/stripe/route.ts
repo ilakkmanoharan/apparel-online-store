@@ -95,8 +95,8 @@ export async function POST(req: NextRequest) {
       quantity: item.quantity,
     }));
 
-    const metaUserId =
-      body.userId && body.userId.trim() ? body.userId.trim() : "guest";
+    // Build metadata for webhook to create order (userId, items, shippingAddress)
+    const metaUserId = body.userId?.trim() || "guest";
     const metadata: Record<string, string> = {
       userId: metaUserId,
       items: JSON.stringify(body.items),
@@ -105,7 +105,6 @@ export async function POST(req: NextRequest) {
       metadata.shippingAddress = JSON.stringify(body.shippingAddress);
     }
 
-    // Metadata is read by stripe webhook to create order (userId, items, shippingAddress)
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
