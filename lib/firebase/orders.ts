@@ -45,6 +45,7 @@ import { Order, CartItem, Address, Product } from "@/types";
 import { CompactCartItem } from "@/types/checkout";
 import { getProductById } from "./products";
 import { deductForOrder } from "@/lib/inventory/deduct";
+import { restoreForOrder } from "@/lib/inventory/restore";
 import { sendOrderConfirmationEmail } from "@/lib/email/order-confirmation";
 
 const ordersCollection = collection(db, "orders");
@@ -366,6 +367,7 @@ async function findOrderByPaymentIntentId(
 /**
  * Phase 21: Handle charge.refunded webhook event.
  * Updates order status to "refunded" or "partially_refunded".
+ * Phase 22: Restores inventory for full refunds.
  */
 async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
   const paymentIntentId = charge.payment_intent as string;
@@ -413,6 +415,42 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
     `[orders] Order ${order.id} marked as ${newStatus}:`,
     `$${refundedAmount} of $${totalAmount} refunded`
   );
+
+  // Phase 22: Restore inventory for full refunds.
+  // For partial refunds, inventory is not restored automatically
+  // (would require knowing which specific items were refunded).
+  if (isFullRefund) {
+    const orderItems = order.data.items as CartItem[] | undefined;
+
+    if (orderItems && orderItems.length > 0) {
+      try {
+        await restoreForOrder(orderItems);
+        console.log(
+          `[orders] Inventory restored for refunded order ${order.id}`
+        );
+      } catch (error) {
+        console.error(
+          "[orders] Failed to restore inventory for refunded order; marking for review",
+          order.id,
+          error
+        );
+        // Mark order for manual inventory review
+        await setDoc(
+          ref,
+          {
+            inventoryRestoreError: true,
+            updatedAt: new Date(),
+          },
+          { merge: true }
+        );
+      }
+    } else {
+      console.warn(
+        "[orders] Refunded order has no items to restore inventory",
+        order.id
+      );
+    }
+  }
 }
 
 /**
