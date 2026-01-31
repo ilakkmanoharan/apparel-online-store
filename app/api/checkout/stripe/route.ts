@@ -1,7 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { CartItem, Address } from "@/types";
+import { getProductById } from "@/lib/firebase/products";
+import type { CheckoutMetadataItem } from "@/types/checkout";
 
+/**
+ * POST /api/checkout/stripe — creates a Stripe Checkout Session.
+ *
+ * Request body:
+ *   items            CartItem[]   Required. Products, quantities, and selections.
+ *   userId          string?      Optional. Authenticated user id; defaults to "guest".
+ *   shippingAddress  Address?     Optional. Validated when present (see @/types Address).
+ *   successUrl       string?      Optional. Must be same-origin; defaults to /checkout/success.
+ *   cancelUrl        string?      Optional. Must be same-origin; defaults to /checkout/cancel.
+ *
+ * Stripe session metadata (read by webhook to create the order):
+ *   userId          string       Trimmed user id or "guest".
+ *   items            string       JSON — compact array: [{ productId, quantity, selectedSize, selectedColor, price }].
+ *                                 Webhook re-fetches full product details from DB. See lib/firebase/orders.ts.
+ *   shippingAddress  string?      JSON of Address. Omitted when no address provided.
+ *
+ * Validation order: items shape → shipping address → userId → URL origin →
+ *   product existence (parallel DB reads) → stock → price match.
+ */
 interface CheckoutRequestBody {
   items: CartItem[];
   userId?: string;
@@ -13,6 +34,7 @@ interface CheckoutRequestBody {
 const DEFAULT_SUCCESS_PATH = "/checkout/success";
 const DEFAULT_CANCEL_PATH = "/checkout/cancel";
 
+// NEXT_PUBLIC_BASE_URL must be set in production for correct success/cancel redirects.
 function getBaseUrl() {
   return process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 }
@@ -81,31 +103,105 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (body.userId != null) {
+      if (typeof body.userId !== "string" || !body.userId.trim()) {
+        return NextResponse.json(
+          { error: "Invalid userId: must be non-empty string" },
+          { status: 400 }
+        );
+      }
+    }
+
     const baseUrl = getBaseUrl();
 
-    const lineItems = body.items.map((item) => ({
+    if (body.successUrl && !body.successUrl.startsWith(baseUrl)) {
+      return NextResponse.json(
+        { error: "successUrl must be same-origin" },
+        { status: 400 }
+      );
+    }
+    if (body.cancelUrl && !body.cancelUrl.startsWith(baseUrl)) {
+      return NextResponse.json(
+        { error: "cancelUrl must be same-origin" },
+        { status: 400 }
+      );
+    }
+
+    const fetchedProducts = await Promise.all(
+      body.items.map((item) => getProductById(item.product.id))
+    );
+    for (let i = 0; i < fetchedProducts.length; i++) {
+      if (!fetchedProducts[i]) {
+        return NextResponse.json(
+          { error: `Product not found: ${body.items[i].product.id}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    for (let i = 0; i < fetchedProducts.length; i++) {
+      const product = fetchedProducts[i]!;
+      if (!product.inStock || body.items[i].quantity > (product.stockCount ?? 0)) {
+        return NextResponse.json(
+          {
+            error: `Insufficient stock for product ${product.id}: requested ${body.items[i].quantity}, available ${product.stockCount ?? 0}`,
+          },
+          { status: 400 }
+        );
+      }
+
+      // Price must match server to prevent client manipulation; exact match required.
+      if (body.items[i].product.price !== product.price) {
+        return NextResponse.json(
+          {
+            error: `Price mismatch for product ${product.id}: expected ${product.price}, got ${body.items[i].product.price}`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    const lineItems = body.items.map((item, i) => ({
       price_data: {
         currency: "usd",
         product_data: {
-          name: item.product.name,
-          images: item.product.images?.slice(0, 1),
+          name: fetchedProducts[i]!.name,
+          images: fetchedProducts[i]!.images?.slice(0, 1),
         },
-        unit_amount: Math.round(item.product.price * 100),
+        unit_amount: Math.round(fetchedProducts[i]!.price * 100),
       },
       quantity: item.quantity,
     }));
 
+    // Stripe metadata: max 500 chars per value, 50 keys. We use 3 keys:
+    // userId, items, shippingAddress.
+    // Strategy (Option B — compact): items stores only the fields needed to
+    // reconstruct order lines; webhook re-fetches product details (name, images)
+    // from DB. Price is included here to capture the amount actually charged.
     const metaUserId =
       body.userId && body.userId.trim() ? body.userId.trim() : "guest";
+    const compactItems: CheckoutMetadataItem[] = body.items.map((item, i) => ({
+      productId: item.product.id,
+      quantity: item.quantity,
+      selectedSize: item.selectedSize,
+      selectedColor: item.selectedColor,
+      price: fetchedProducts[i]!.price,
+    }));
+    const metaItems = JSON.stringify(compactItems);
+    if (metaItems.length > 500) {
+      return NextResponse.json(
+        { error: "Cart too large for checkout; please reduce items" },
+        { status: 400 }
+      );
+    }
     const metadata: Record<string, string> = {
       userId: metaUserId,
-      items: JSON.stringify(body.items),
+      items: metaItems,
     };
     if (body.shippingAddress) {
       metadata.shippingAddress = JSON.stringify(body.shippingAddress);
     }
 
-    // Metadata is read by stripe webhook to create order (userId, items, shippingAddress)
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
