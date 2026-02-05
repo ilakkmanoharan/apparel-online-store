@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import type { WomenFashionImage } from "@/lib/firebase/womenFashion";
 
 export default function WomenFashionGallery() {
@@ -52,14 +51,14 @@ export default function WomenFashionGallery() {
     <section className="mb-12">
       <h2 className="text-2xl font-bold mb-4">Women&apos;s Fashion Gallery</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Hero image */}
+        {/* Hero image - native img to avoid Next/Image host/optimizer issues with Firebase Storage */}
         <div className="md:col-span-2">
           <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-gray-100">
-            <Image
+            <img
               src={hero.imageUrl}
               alt={hero.label || "Women fashion look"}
-              fill
-              className="object-cover"
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="eager"
             />
             {hero.label && (
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
@@ -76,11 +75,11 @@ export default function WomenFashionGallery() {
               key={image.id}
               className="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-gray-100"
             >
-              <Image
+              <img
                 src={image.imageUrl}
                 alt={image.label || "Women fashion look"}
-                fill
-                className="object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
               />
             </div>
           ))}
@@ -95,11 +94,11 @@ export default function WomenFashionGallery() {
               key={image.id}
               className="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-gray-100"
             >
-              <Image
+              <img
                 src={image.imageUrl}
                 alt={image.label || "Women fashion look"}
-                fill
-                className="object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
               />
             </div>
           ))}

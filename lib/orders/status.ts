@@ -7,6 +7,7 @@ const STATUS_ORDER: OrderStatus[] = [
   "shipped",
   "delivered",
   "cancelled",
+  "needs_review",
 ];
 
 export function getOrderStatusIndex(status: OrderStatus): number {

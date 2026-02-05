@@ -14,6 +14,7 @@ const STATUS_OPTIONS: { value: Order["status"] | ""; label: string }[] = [
   { value: "shipped", label: "Shipped" },
   { value: "delivered", label: "Delivered" },
   { value: "cancelled", label: "Cancelled" },
+  { value: "needs_review", label: "Needs review" },
 ];
 
 export default function OrderFilters({ status, onStatusChange }: OrderFiltersProps) {

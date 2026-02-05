@@ -8,7 +8,7 @@ interface OrderStatusSelectProps {
   onChange: (status: Order["status"]) => Promise<void>;
 }
 
-const STATUS_OPTIONS: Order["status"][] = ["pending", "processing", "shipped", "delivered", "cancelled"];
+const STATUS_OPTIONS: Order["status"][] = ["pending", "processing", "shipped", "delivered", "cancelled", "needs_review"];
 
 export default function OrderStatusSelect({ value, onChange }: OrderStatusSelectProps) {
   const [loading, setLoading] = useState(false);

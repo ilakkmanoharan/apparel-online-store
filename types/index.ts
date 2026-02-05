@@ -67,7 +67,7 @@ export interface Order {
   items: CartItem[];
   total: number;
   shippingAddress: Address;
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "needs_review";
   paymentMethod: string;
   paymentStatus: "pending" | "paid" | "failed";
   stripeSessionId?: string;

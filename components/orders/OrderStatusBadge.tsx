@@ -14,6 +14,7 @@ function getStatusVariant(status: OrderStatus): "default" | "success" | "warning
       return "success";
     case "processing":
     case "shipped":
+    case "needs_review":
       return "warning";
     case "cancelled":
       return "danger";
@@ -35,6 +36,8 @@ function getStatusLabel(status: OrderStatus): string {
       return "Delivered";
     case "cancelled":
       return "Cancelled";
+    case "needs_review":
+      return "Needs review";
     default:
       return status;
   }

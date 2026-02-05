@@ -1,5 +1,15 @@
 import { NextResponse } from "next/server";
 import { getAdminOrder, updateOrderStatus } from "@/lib/admin/orders";
+import type { Order } from "@/types";
+
+const VALID_STATUSES: Order["status"][] = [
+  "pending",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+  "needs_review",
+];
 
 export async function GET(
   _request: Request,
@@ -25,9 +35,9 @@ export async function PATCH(
     const body = await request.json();
     const status = body.status as string | undefined;
     if (!status) return NextResponse.json({ error: "Missing status" }, { status: 400 });
-    const valid = ["pending", "processing", "shipped", "delivered", "cancelled"];
-    if (!valid.includes(status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-    await updateOrderStatus(id, status as "pending" | "processing" | "shipped" | "delivered" | "cancelled");
+    if (!VALID_STATUSES.includes(status as Order["status"]))
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    await updateOrderStatus(id, status as Order["status"]);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Admin order update error:", err);

@@ -3,7 +3,7 @@
 import type { Order } from "@/types";
 import { cn } from "@/lib/utils";
 
-const STATUS_OPTIONS: Order["status"][] = ["pending", "processing", "shipped", "delivered", "cancelled"];
+const STATUS_OPTIONS: Order["status"][] = ["pending", "processing", "shipped", "delivered", "cancelled", "needs_review"];
 
 interface OrderStatusDropdownProps {
   value: Order["status"];
