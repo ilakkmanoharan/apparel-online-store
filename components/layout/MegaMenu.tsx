@@ -12,8 +12,8 @@ export default function MegaMenu({ items, isOpen }: MegaMenuProps) {
   if (!isOpen || items.length === 0) return null;
 
   return (
-    <div className="absolute inset-x-0 top-full bg-white shadow-lg border-t border-gray-100">
-      <div className="container mx-auto px-4 py-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="absolute left-0 right-0 top-full z-50 bg-white shadow-lg border-t border-gray-100">
+      <div className="container mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
         {items.map((child) => (
           <LocaleLink
             key={child.href}

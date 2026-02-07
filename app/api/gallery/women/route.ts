@@ -1,19 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase/admin";
+import * as admin from "firebase-admin";
 
 export const dynamic = "force-dynamic";
-
-const STORAGE_BUCKET = "apparel-online-store.firebasestorage.app";
-
-/** Build Firebase Storage download URL when imageUrl is missing in Firestore. */
-function getImageUrl(imageUrl: string | undefined, storagePath: string | undefined): string | null {
-  if (imageUrl && imageUrl.startsWith("http")) return imageUrl;
-  if (storagePath && storagePath.trim()) {
-    const encoded = encodeURIComponent(storagePath.trim());
-    return `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encoded}?alt=media`;
-  }
-  return null;
-}
 
 export async function GET() {
   try {
@@ -32,11 +21,22 @@ export async function GET() {
       .orderBy("order", "asc")
       .get();
 
+    // Get bucket name once after admin is initialized
+    const bucketName = admin.storage().bucket().name;
+
     const images = snapshot.docs
       .map((doc) => {
         const data = doc.data();
-        const imageUrl = getImageUrl(data.imageUrl, data.storagePath);
+        let imageUrl = data.imageUrl;
+
+        // If imageUrl is missing or invalid, construct it from storagePath
+        if ((!imageUrl || !imageUrl.startsWith("http")) && data.storagePath) {
+          const encoded = encodeURIComponent(data.storagePath.trim());
+          imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encoded}?alt=media`;
+        }
+
         if (!imageUrl) return null;
+
         return {
           id: doc.id,
           imageUrl,
