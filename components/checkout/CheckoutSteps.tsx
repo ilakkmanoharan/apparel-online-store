@@ -1,27 +1,30 @@
 "use client";
 
+import { useTranslations } from "@/hooks/useTranslations";
 import { cn } from "@/lib/utils";
-
-const STEPS = ["Shipping", "Payment", "Review"] as const;
 
 interface CheckoutStepsProps {
   currentStep: number;
 }
 
 export default function CheckoutSteps({ currentStep }: CheckoutStepsProps) {
+  const t = useTranslations();
+  const steps = [t("checkout.shipping"), t("checkout.payment"), t("checkout.review")];
+
   return (
-    <nav aria-label="Checkout progress" className="mb-8">
+    <nav aria-label={t("checkout.progress")} className="mb-8">
       <ol className="flex items-center justify-between">
-        {STEPS.map((label, index) => {
+        {steps.map((label, index) => {
           const step = index + 1;
           const isActive = step === currentStep;
           const isComplete = step < currentStep;
+
           return (
             <li
               key={label}
               className={cn(
                 "flex flex-1 items-center",
-                index < STEPS.length - 1 && "after:content-[''] after:flex-1 after:border-t after:border-gray-200 after:mx-2"
+                index < steps.length - 1 && "after:content-[''] after:flex-1 after:border-t after:border-gray-200 after:mx-2"
               )}
             >
               <span
@@ -32,7 +35,7 @@ export default function CheckoutSteps({ currentStep }: CheckoutStepsProps) {
                   !isComplete && !isActive && "bg-gray-200 text-gray-500"
                 )}
               >
-                {isComplete ? "✓" : step}
+                {isComplete ? "\u2713" : step}
               </span>
               <span
                 className={cn(

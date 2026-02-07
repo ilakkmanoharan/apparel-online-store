@@ -2,6 +2,14 @@ export interface Product {
   id: string;
   name: string;
   description: string;
+  name_en?: string;
+  name_es?: string;
+  name_fr?: string;
+  name_de?: string;
+  description_en?: string;
+  description_es?: string;
+  description_fr?: string;
+  description_de?: string;
   price: number;
   originalPrice?: number;
   images: string[];
@@ -21,8 +29,16 @@ export interface Product {
 export interface Category {
   id: string;
   name: string;
+  name_en?: string;
+  name_es?: string;
+  name_fr?: string;
+  name_de?: string;
   slug: string;
   description?: string;
+  description_en?: string;
+  description_es?: string;
+  description_fr?: string;
+  description_de?: string;
   image?: string;
   subcategories?: Subcategory[];
 }

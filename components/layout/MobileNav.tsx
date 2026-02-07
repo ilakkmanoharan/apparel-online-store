@@ -1,19 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { mainNavItems } from "@/lib/config/navigation";
+import { useMemo, useState } from "react";
+import LocaleLink from "@/components/common/LocaleLink";
+import { getMainNavItems } from "@/lib/config/navigation";
+import { useTranslations } from "@/hooks/useTranslations";
 import SearchBar from "./SearchBar";
 
 export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations();
+  const mainNavItems = useMemo(() => getMainNavItems(t), [t]);
 
   return (
     <div className="md:hidden">
       <button
         className="p-2"
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="Toggle navigation menu"
+        aria-label={t("nav.toggleMenu")}
       >
         <svg
           className="w-6 h-6"
@@ -45,24 +48,24 @@ export default function MobileNav() {
           <div className="space-y-2">
             {mainNavItems.map((item) => (
               <div key={item.label}>
-                <Link
+                <LocaleLink
                   href={item.href || "#"}
                   className="block py-2 text-gray-800 font-medium"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.label}
-                </Link>
+                </LocaleLink>
                 {item.children && (
                   <div className="ml-4 space-y-1">
                     {item.children.map((child) => (
-                      <Link
+                      <LocaleLink
                         key={child.href}
                         href={child.href}
                         className="block text-sm text-gray-600 py-0.5"
                         onClick={() => setIsOpen(false)}
                       >
                         {child.label}
-                      </Link>
+                      </LocaleLink>
                     ))}
                   </div>
                 )}
@@ -74,4 +77,3 @@ export default function MobileNav() {
     </div>
   );
 }
-

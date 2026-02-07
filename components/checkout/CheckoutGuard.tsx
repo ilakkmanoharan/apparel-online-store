@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCartStore } from "@/store/cartStore";
+import { useLocaleRouter } from "@/hooks/useLocaleRouter";
+import { useTranslations } from "@/hooks/useTranslations";
 import { cn } from "@/lib/utils";
+import { useCartStore } from "@/store/cartStore";
 
 interface CheckoutGuardProps {
   children: React.ReactNode;
@@ -17,16 +18,21 @@ export default function CheckoutGuard({
   allowGuest = true,
   className,
 }: CheckoutGuardProps) {
-  const router = useRouter();
+  const router = useLocaleRouter();
   const { user, loading: authLoading } = useAuth();
-  const items = useCartStore((s) => s.items);
+  const items = useCartStore((state) => state.items);
+  const t = useTranslations();
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading) {
+      return;
+    }
+
     if (items.length === 0) {
       router.replace("/cart");
       return;
     }
+
     if (!allowGuest && !user) {
       router.replace("/login?redirect=/checkout");
     }
@@ -35,7 +41,7 @@ export default function CheckoutGuard({
   if (authLoading || items.length === 0) {
     return (
       <div className={cn("flex items-center justify-center min-h-[200px]", className)}>
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500">{t("common.loading")}</p>
       </div>
     );
   }

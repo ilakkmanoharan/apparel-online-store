@@ -1,0 +1,353 @@
+{
+  "brand": {
+    "name": "Apparel Store"
+  },
+  "common": {
+    "addToCart": "Add to Cart",
+    "apply": "Apply",
+    "backToHome": "Back to Home",
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "clearFilters": "Clear filters",
+    "close": "Close",
+    "continueShopping": "Continue Shopping",
+    "deleting": "Deleting...",
+    "loading": "Loading...",
+    "new": "New",
+    "next": "Next",
+    "nextPage": "Next page",
+    "noImage": "No image",
+    "pageOf": "Page {page} of {totalPages}",
+    "pagination": "Pagination",
+    "previous": "Previous",
+    "previousPage": "Previous page",
+    "remove": "Remove",
+    "select": "Select",
+    "sending": "Sending...",
+    "submitting": "Submitting...",
+    "tryAgain": "Try again"
+  },
+  "banner": {
+    "freeShipping": "Free shipping on orders over $50 and free in-store returns.",
+    "shopDeals": "Shop Today's Deals"
+  },
+  "nav": {
+    "mainNavigation": "Main navigation",
+    "toggleMenu": "Toggle navigation menu",
+    "departments": "Departments",
+    "women": "Women",
+    "men": "Men",
+    "kids": "Kids",
+    "home": "Home",
+    "beauty": "Beauty",
+    "sale": "Sale",
+    "newArrivals": "New Arrivals",
+    "dresses": "Dresses",
+    "tops": "Tops",
+    "jeans": "Jeans",
+    "shirts": "Shirts",
+    "pants": "Pants",
+    "outerwear": "Outerwear",
+    "girls": "Girls",
+    "boys": "Boys",
+    "baby": "Baby",
+    "womensSale": "Women's Sale",
+    "mensSale": "Men's Sale",
+    "kidsSale": "Kids' Sale",
+    "womenNewArrivalsDescription": "Latest trends and seasonal drops.",
+    "dressesDescription": "Work, casual, and occasion dresses.",
+    "topsDescription": "Tees, blouses, and more.",
+    "jeansDescription": "Skinny, straight, and relaxed fits.",
+    "menNewArrivalsDescription": "Fresh styles for every day.",
+    "shirtsDescription": "Casual and dress shirts.",
+    "pantsDescription": "Chinos, joggers, and more.",
+    "outerwearDescription": "Jackets and coats for all seasons."
+  },
+  "footer": {
+    "shop": "Shop",
+    "help": "Help",
+    "about": "About",
+    "contactUs": "Contact Us",
+    "shipping": "Shipping",
+    "returns": "Returns",
+    "faq": "FAQ",
+    "aboutUs": "About Us",
+    "careers": "Careers",
+    "sustainability": "Sustainability",
+    "press": "Press",
+    "brandDescription": "Your destination for the latest fashion trends and quality apparel.",
+    "rights": "© {year} Apparel Store. All rights reserved."
+  },
+  "home": {
+    "heroTitle": "Discover Your Style",
+    "heroSubtitle": "Shop the latest fashion trends and find your perfect look",
+    "shopNow": "Shop Now",
+    "shopByCategory": "Shop by Category",
+    "featuredProducts": "Featured Products",
+    "noFeaturedProducts": "No featured products available yet.",
+    "categories": {
+      "women": {
+        "name": "Women",
+        "description": "Latest women's fashion"
+      },
+      "men": {
+        "name": "Men",
+        "description": "Stylish men's apparel"
+      },
+      "kids": {
+        "name": "Kids",
+        "description": "Fun kids' clothing"
+      }
+    }
+  },
+  "static": {
+    "women": {
+      "title": "Women's New Arrivals",
+      "description": "Discover the latest looks, curated outfits, and seasonal trends for women."
+    },
+    "men": {
+      "title": "Men's New Arrivals",
+      "description": "Explore new menswear drops, from tailored essentials to laid-back weekend looks."
+    },
+    "kids": {
+      "title": "Kids' Favorites",
+      "description": "Shop playful styles for little ones, from everyday basics to special occasion outfits."
+    },
+    "sale": {
+      "title": "Today's Deals and Sale",
+      "description": "Deep discounts across women's, men's, and kids' apparel."
+    },
+    "beauty": {
+      "title": "Beauty",
+      "description": "Shop beauty and personal care products."
+    },
+    "home": {
+      "title": "Home",
+      "description": "Shop home and living products."
+    }
+  },
+  "category": {
+    "filters": "Filters",
+    "sortBy": "Sort by",
+    "price": "Price",
+    "min": "Min",
+    "max": "Max",
+    "inStockOnly": "In stock only",
+    "emptyFilters": "No products match your filters.",
+    "productCount": "{count} products",
+    "noProducts": "No products found in this category.",
+    "womenGallery": "Women's Fashion Gallery",
+    "womenLook": "Women fashion look",
+    "slugs": {
+      "women": "Women",
+      "men": "Men",
+      "kids": "Kids",
+      "beauty": "Beauty",
+      "home": "Home",
+      "sale": "Sale",
+      "all": "All"
+    },
+    "sort": {
+      "newest": "Newest",
+      "price-asc": "Price: Low to High",
+      "price-desc": "Price: High to Low",
+      "rating": "Top Rated"
+    }
+  },
+  "product": {
+    "size": "Size",
+    "color": "Color",
+    "outOfStock": "Out of Stock",
+    "youMayAlsoLike": "You May Also Like",
+    "recommendationDescription": "Based on similar items and what other customers bought together.",
+    "recentlyViewed": "Recently Viewed",
+    "addToWishlist": "Add to wishlist",
+    "inStockCount": "In Stock ({count} available)"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "total": "Total",
+    "clear": "Clear Cart",
+    "emptyTitle": "Your cart is empty",
+    "emptyDescription": "Start shopping to add items to your cart",
+    "emptyCartShort": "Your cart is empty.",
+    "proceedToCheckout": "Proceed to Checkout",
+    "viewCartCheckout": "View Cart and Checkout",
+    "promoPlaceholder": "Promo code",
+    "codeApplied": "Code applied: {discount}% off",
+    "codeAppliedLabel": "Code {code} applied",
+    "qtyShort": "Qty {qty}",
+    "added": "Added!",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity",
+    "removeItem": "Remove item",
+    "ariaCartItems": "Cart, {count} items"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "progress": "Checkout progress",
+    "shipping": "Shipping",
+    "payment": "Payment",
+    "review": "Review",
+    "shippingAddress": "Shipping Address",
+    "redirecting": "Redirecting to Stripe...",
+    "payWithStripe": "Pay with Card (Stripe)",
+    "cancelTitle": "Payment canceled",
+    "cancelDescription": "Your payment was canceled. You can review your cart or try again.",
+    "backToCart": "Back to Cart",
+    "successTitle": "Thank you for your order!",
+    "successDescription": "Your order has been received and is being processed.",
+    "orderId": "Order ID: {orderId}",
+    "sessionId": "Stripe session: {sessionId}"
+  },
+  "account": {
+    "userMenu": "User account",
+    "myAccount": "My Account",
+    "name": "Name",
+    "editProfile": "Edit Profile",
+    "orders": "Orders",
+    "notifications": "Notification preferences",
+    "securityBilling": "Security and billing",
+    "orderNotFound": "Order not found.",
+    "backToOrders": "Back to Orders",
+    "orderNumber": "Order #{orderId}",
+    "deleteAccount": "Delete account",
+    "deleteDescription": "This action cannot be undone. All your data will be removed.",
+    "deleteToConfirm": "to confirm.",
+    "deleteConfirmPhrase": "DELETE MY ACCOUNT",
+    "deleteAccountCta": "Delete my account",
+    "menu": {
+      "account": "Account",
+      "profile": "Profile",
+      "orders": "Orders",
+      "addresses": "Addresses",
+      "wishlist": "Wishlist",
+      "rewards": "Rewards",
+      "tier": "Tier",
+      "tierStatus": "Tier status",
+      "coupons": "Coupons",
+      "shipping": "Shipping",
+      "notifications": "Notifications",
+      "security": "Security",
+      "settings": "Account settings"
+    }
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign Out",
+    "signUp": "Sign Up",
+    "signInTitle": "Sign in to your account",
+    "createAccountTitle": "Create your account",
+    "or": "Or",
+    "createAccount": "create a new account",
+    "signInExisting": "sign in to your existing account",
+    "email": "Email address",
+    "password": "Password",
+    "passwordMin": "Password (min. 6 characters)",
+    "confirmPassword": "Confirm Password",
+    "fullName": "Full Name",
+    "forgotPassword": "Forgot your password?",
+    "signingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "resetTitle": "Reset your password",
+    "resetDescription": "Enter your email and we will send you a link to reset your password",
+    "resetSent": "Password reset email sent! Check your inbox.",
+    "sendReset": "Send reset email",
+    "backToSignIn": "Back to sign in"
+  },
+  "search": {
+    "title": "Search",
+    "searchForm": "Search form",
+    "inputLabel": "Search",
+    "placeholder": "Search for products...",
+    "filterBy": "Filter by:",
+    "allCategories": "All categories",
+    "showingResultsFor": "Showing results for \"{query}\"",
+    "startTyping": "Start typing in the search bar above to find products.",
+    "resultSummary": "Found {count} results for \"{query}\"",
+    "noResults": "No results found",
+    "noResultsShort": "No results",
+    "noResultsFor": "We could not find anything for \"{query}\"",
+    "tryDifferent": "Try different keywords or browse our categories.",
+    "browseWomen": "Browse Women",
+    "browseMen": "Browse Men",
+    "didYouMean": "Did you mean",
+    "suggestions": {
+      "womenDresses": "Women dresses",
+      "menShirts": "Men shirts",
+      "kidsShoes": "Kids shoes"
+    }
+  },
+  "giftCard": {
+    "title": "Gift Cards",
+    "description": "Give the gift of style. Our gift cards can be used on any purchase.",
+    "redeem": "Redeem a gift card",
+    "redeemTitle": "Redeem gift card"
+  },
+  "wishlist": {
+    "empty": "Your wishlist is empty."
+  },
+  "stores": {
+    "locate": "Find a store",
+    "allStores": "All stores",
+    "phone": "Phone",
+    "hours": "Hours",
+    "closed": "Closed"
+  },
+  "editorial": {
+    "brands": "Brands",
+    "campaigns": "Campaigns",
+    "trends": "Trends",
+    "noCampaigns": "No active campaigns.",
+    "allCampaigns": "All campaigns",
+    "allTrends": "All trends",
+    "trendNotFound": "Trend not found."
+  },
+  "returns": {
+    "startReturn": "Start a Return"
+  },
+  "reviews": {
+    "noReviews": "No reviews yet.",
+    "anonymous": "Anonymous",
+    "verified": "Verified",
+    "rating": "Rating (1-5)",
+    "titleOptional": "Title (optional)",
+    "reviewOptional": "Review (optional)",
+    "submitReview": "Submit review",
+    "totalReviews": "{count} reviews",
+    "stars": "{count} stars",
+    "sortReviews": "Sort reviews",
+    "sort": {
+      "mostRecent": "Most recent",
+      "highest": "Highest rating",
+      "lowest": "Lowest rating",
+      "helpful": "Most helpful"
+    },
+    "ratingAria": "Rating: {rating} out of {max}"
+  },
+  "qa": {
+    "askQuestion": "Ask a question",
+    "placeholder": "e.g. Does this run true to size?",
+    "rules": "Min 10 characters, max 500.",
+    "submitQuestion": "Submit question",
+    "invalidQuestion": "Invalid question",
+    "failedSubmit": "Failed to submit",
+    "empty": "No questions yet. Be the first to ask.",
+    "customer": "Customer",
+    "answer": "Answer"
+  },
+  "errors": {
+    "notFoundTitle": "Page Not Found",
+    "notFoundDescription": "The page you requested could not be found.",
+    "signInFailed": "Failed to sign in",
+    "createAccountFailed": "Failed to create account",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "resetFailed": "Failed to send reset email",
+    "deleteAccountFailed": "Failed to delete account",
+    "invalidPromo": "Invalid or expired code"
+  }
+}

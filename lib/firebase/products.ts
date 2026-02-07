@@ -1,20 +1,33 @@
 import { collection, getDocs, doc, getDoc, query, where, orderBy, limit } from "firebase/firestore";
 import { db } from "./config";
 import { Product } from "@/types";
+import { localizeProduct, normalizeLocale } from "./products-i18n";
 
 const productsCollection = collection(db, "products");
 
-export async function getProducts(): Promise<Product[]> {
-  const snapshot = await getDocs(productsCollection);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate() || new Date(),
-    updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-  })) as Product[];
+function toProduct(id: string, data: Record<string, any>, localeValue?: string): Product {
+  return localizeProduct(
+    {
+      id,
+      ...data,
+      createdAt: data.createdAt?.toDate() || new Date(),
+      updatedAt: data.updatedAt?.toDate() || new Date(),
+    } as Product,
+    localeValue
+  );
 }
 
-export async function getProductById(id: string): Promise<Product | null> {
+export async function getProducts(localeValue?: string): Promise<Product[]> {
+  const locale = normalizeLocale(localeValue);
+  const snapshot = await getDocs(productsCollection);
+  return snapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data() as Record<string, any>;
+    return toProduct(docSnapshot.id, data, locale);
+  });
+}
+
+export async function getProductById(id: string, localeValue?: string): Promise<Product | null> {
+  const locale = normalizeLocale(localeValue);
   const docRef = doc(db, "products", id);
   const docSnap = await getDoc(docRef);
   
@@ -22,30 +35,26 @@ export async function getProductById(id: string): Promise<Product | null> {
     return null;
   }
 
-  return {
-    id: docSnap.id,
-    ...docSnap.data(),
-    createdAt: docSnap.data().createdAt?.toDate() || new Date(),
-    updatedAt: docSnap.data().updatedAt?.toDate() || new Date(),
-  } as Product;
+  const data = docSnap.data() as Record<string, any>;
+  return toProduct(docSnap.id, data, locale);
 }
 
-export async function getProductsByCategory(category: string): Promise<Product[]> {
+export async function getProductsByCategory(category: string, localeValue?: string): Promise<Product[]> {
+  const locale = normalizeLocale(localeValue);
   const q = query(
     productsCollection,
     where("category", "==", category),
     orderBy("createdAt", "desc")
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate() || new Date(),
-    updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-  })) as Product[];
+  return snapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data() as Record<string, any>;
+    return toProduct(docSnapshot.id, data, locale);
+  });
 }
 
-export async function getFeaturedProducts(): Promise<Product[]> {
+export async function getFeaturedProducts(localeValue?: string): Promise<Product[]> {
+  const locale = normalizeLocale(localeValue);
   const q = query(
     productsCollection,
     where("featured", "==", true),
@@ -53,10 +62,8 @@ export async function getFeaturedProducts(): Promise<Product[]> {
     limit(8)
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate() || new Date(),
-    updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-  })) as Product[];
+  return snapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data() as Record<string, any>;
+    return toProduct(docSnapshot.id, data, locale);
+  });
 }

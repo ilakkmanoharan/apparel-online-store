@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import Image from "next/image";
 import { formatPrice } from "@/lib/utils";
 import { Order } from "@/types";
@@ -49,12 +49,12 @@ export default function OrderDetail({ order }: OrderDetailProps) {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <Link
+                <LocaleLink
                   href={`/products/${item.product.id}`}
                   className="font-medium text-gray-900 hover:text-gray-600"
                 >
                   {item.product.name}
-                </Link>
+                </LocaleLink>
                 <p className="text-sm text-gray-500">
                   Qty {item.quantity} · {item.selectedSize} · {item.selectedColor}
                 </p>

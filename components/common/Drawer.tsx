@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "@/hooks/useTranslations";
 import { cn } from "@/lib/utils";
 
 interface DrawerProps {
@@ -20,20 +21,25 @@ export default function Drawer({
   children,
   className,
 }: DrawerProps) {
+  const t = useTranslations();
+
   useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    if (open) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-        aria-hidden
-      />
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
       <aside
         role="dialog"
         aria-modal="true"
@@ -46,12 +52,7 @@ export default function Drawer({
         {title && (
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-lg font-semibold">{title}</h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg"
-              aria-label="Close"
-            >
+            <button type="button" onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg" aria-label={t("common.close")}>
               &times;
             </button>
           </div>

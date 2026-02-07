@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Product } from "@/types";
 import { getProductsByCategory } from "@/lib/firebase/products";
+import { useI18n } from "@/components/common/I18nProvider";
 import { FilterState, defaultFilterState } from "@/lib/config/filters";
 import type { SortOption } from "@/lib/config/filters";
 import { PLP_DEFAULT_PAGE_SIZE } from "@/lib/config/plp";
@@ -14,6 +15,7 @@ export interface UseCategoryProductsOptions {
 
 export function useCategoryProducts(slug: string, options: UseCategoryProductsOptions = {}) {
   const { useApi = false, pageSize = PLP_DEFAULT_PAGE_SIZE } = options;
+  const { locale } = useI18n();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterState>(defaultFilterState);
@@ -29,6 +31,7 @@ export function useCategoryProducts(slug: string, options: UseCategoryProductsOp
           page: String(pageNum),
           pageSize: String(pageSize),
           sort: sortVal,
+          locale,
         });
         const res = await fetch(`/api/category/${encodeURIComponent(slug)}/products?${params}`);
         if (!res.ok) throw new Error("Failed to fetch");
@@ -45,7 +48,7 @@ export function useCategoryProducts(slug: string, options: UseCategoryProductsOp
         setLoading(false);
       }
     },
-    [slug, pageSize]
+    [locale, slug, pageSize]
   );
 
   useEffect(() => {
@@ -54,7 +57,7 @@ export function useCategoryProducts(slug: string, options: UseCategoryProductsOp
     } else {
       let cancelled = false;
       setLoading(true);
-      getProductsByCategory(slug)
+      getProductsByCategory(slug, locale)
         .then((data) => {
           if (!cancelled) setProducts(data);
         })
@@ -71,7 +74,7 @@ export function useCategoryProducts(slug: string, options: UseCategoryProductsOp
         cancelled = true;
       };
     }
-  }, [slug, useApi, page, filters.sort, fetchFromApi]);
+  }, [slug, locale, useApi, page, filters.sort, fetchFromApi]);
 
   const filteredProducts = useApi
     ? products

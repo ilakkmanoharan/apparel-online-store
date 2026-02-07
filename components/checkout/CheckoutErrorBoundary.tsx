@@ -1,7 +1,7 @@
 "use client";
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -45,12 +45,12 @@ export default class CheckoutErrorBoundary extends Component<Props, State> {
           <p className="text-sm text-red-700 mb-4">
             We couldn&apos;t complete your checkout. Please try again or contact support.
           </p>
-          <Link
+          <LocaleLink
             href="/cart"
             className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
           >
             Back to cart
-          </Link>
+          </LocaleLink>
         </div>
       );
     }

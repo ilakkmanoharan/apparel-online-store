@@ -1,4 +1,7 @@
-import Link from "next/link";
+"use client";
+
+import LocaleLink from "@/components/common/LocaleLink";
+import { useTranslations } from "@/hooks/useTranslations";
 
 interface DidYouMeanProps {
   original: string;
@@ -9,12 +12,14 @@ interface DidYouMeanProps {
 
 export default function DidYouMean({ original, suggested, searchBasePath = "/search", className = "" }: DidYouMeanProps) {
   const href = `${searchBasePath}?q=${encodeURIComponent(suggested)}`;
+  const t = useTranslations();
+
   return (
-    <p className={"text-sm text-gray-600 " + className}>
-      Did you mean{" "}
-      <Link href={href} className="font-medium text-blue-600 hover:underline">
+    <p className={`text-sm text-gray-600 ${className}`}>
+      {t("search.didYouMean")}{" "}
+      <LocaleLink href={href} className="font-medium text-blue-600 hover:underline">
         {suggested}
-      </Link>
+      </LocaleLink>
       ?
     </p>
   );

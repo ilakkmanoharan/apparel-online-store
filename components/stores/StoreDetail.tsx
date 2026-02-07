@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import StoreHours from "./StoreHours";
 import type { StoreLocation } from "@/types/store";
 
@@ -13,9 +13,9 @@ export default function StoreDetail({ store, showBackLink = true }: StoreDetailP
   return (
     <div className="space-y-4">
       {showBackLink && (
-        <Link href="/stores/locate" className="text-blue-600 hover:underline text-sm">
+        <LocaleLink href="/stores/locate" className="text-blue-600 hover:underline text-sm">
           ← Find stores
-        </Link>
+        </LocaleLink>
       )}
       <h1 className="text-2xl font-bold">{store.name}</h1>
       <div className="text-gray-600">

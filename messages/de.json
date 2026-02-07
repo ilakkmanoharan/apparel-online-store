@@ -1,0 +1,353 @@
+{
+  "brand": {
+    "name": "Bekleidungs-Shop"
+  },
+  "common": {
+    "addToCart": "In den Warenkorb",
+    "apply": "Anwenden",
+    "backToHome": "Zurueck zur Startseite",
+    "cancel": "Abbrechen",
+    "clear": "Leeren",
+    "clearFilters": "Filter zuruecksetzen",
+    "close": "Schliessen",
+    "continueShopping": "Weiter einkaufen",
+    "deleting": "Wird geloescht...",
+    "loading": "Laedt...",
+    "new": "Neu",
+    "next": "Weiter",
+    "nextPage": "Naechste Seite",
+    "noImage": "Kein Bild",
+    "pageOf": "Seite {page} von {totalPages}",
+    "pagination": "Seitennavigation",
+    "previous": "Zurueck",
+    "previousPage": "Vorherige Seite",
+    "remove": "Entfernen",
+    "select": "Auswaehlen",
+    "sending": "Wird gesendet...",
+    "submitting": "Wird uebermittelt...",
+    "tryAgain": "Erneut versuchen"
+  },
+  "banner": {
+    "freeShipping": "Kostenloser Versand ab 50 $ und kostenlose Rueckgaben im Store.",
+    "shopDeals": "Heutige Angebote shoppen"
+  },
+  "nav": {
+    "mainNavigation": "Hauptnavigation",
+    "toggleMenu": "Navigationsmenue umschalten",
+    "departments": "Abteilungen",
+    "women": "Damen",
+    "men": "Herren",
+    "kids": "Kinder",
+    "home": "Home",
+    "beauty": "Beauty",
+    "sale": "Sale",
+    "newArrivals": "Neuheiten",
+    "dresses": "Kleider",
+    "tops": "Oberteile",
+    "jeans": "Jeans",
+    "shirts": "Hemden",
+    "pants": "Hosen",
+    "outerwear": "Jacken",
+    "girls": "Maedchen",
+    "boys": "Jungen",
+    "baby": "Baby",
+    "womensSale": "Damen-Sale",
+    "mensSale": "Herren-Sale",
+    "kidsSale": "Kinder-Sale",
+    "womenNewArrivalsDescription": "Neueste Trends und saisonale Drops.",
+    "dressesDescription": "Kleider fuer Arbeit, Alltag und Anlaesse.",
+    "topsDescription": "T-Shirts, Blusen und mehr.",
+    "jeansDescription": "Skinny-, Straight- und Relaxed-Fits.",
+    "menNewArrivalsDescription": "Frische Styles fuer jeden Tag.",
+    "shirtsDescription": "Freizeit- und Businesshemden.",
+    "pantsDescription": "Chinos, Jogger und mehr.",
+    "outerwearDescription": "Jacken und Maentel fuer alle Jahreszeiten."
+  },
+  "footer": {
+    "shop": "Shop",
+    "help": "Hilfe",
+    "about": "Ueber uns",
+    "contactUs": "Kontakt",
+    "shipping": "Versand",
+    "returns": "Rueckgaben",
+    "faq": "FAQ",
+    "aboutUs": "Ueber uns",
+    "careers": "Karriere",
+    "sustainability": "Nachhaltigkeit",
+    "press": "Presse",
+    "brandDescription": "Dein Ziel fuer die neuesten Modetrends und hochwertige Kleidung.",
+    "rights": "© {year} Bekleidungs-Shop. Alle Rechte vorbehalten."
+  },
+  "home": {
+    "heroTitle": "Entdecke deinen Stil",
+    "heroSubtitle": "Shoppe die neuesten Modetrends und finde deinen perfekten Look",
+    "shopNow": "Jetzt shoppen",
+    "shopByCategory": "Nach Kategorie shoppen",
+    "featuredProducts": "Ausgewaehlte Produkte",
+    "noFeaturedProducts": "Noch keine ausgewaehlten Produkte verfuegbar.",
+    "categories": {
+      "women": {
+        "name": "Damen",
+        "description": "Neueste Damenmode"
+      },
+      "men": {
+        "name": "Herren",
+        "description": "Stilvolle Herrenmode"
+      },
+      "kids": {
+        "name": "Kinder",
+        "description": "Coole Kinderkleidung"
+      }
+    }
+  },
+  "static": {
+    "women": {
+      "title": "Damen Neuheiten",
+      "description": "Entdecke die neuesten Looks, kuratierte Outfits und saisonale Trends fuer Damen."
+    },
+    "men": {
+      "title": "Herren Neuheiten",
+      "description": "Entdecke neue Herrenmode von klassischen Essentials bis zu laessigen Weekend-Looks."
+    },
+    "kids": {
+      "title": "Kinder Favoriten",
+      "description": "Shoppe verspielte Styles fuer die Kleinen - von Alltags-Basics bis zu besonderen Outfits."
+    },
+    "sale": {
+      "title": "Heutige Deals und Sale",
+      "description": "Starke Rabatte auf Damen-, Herren- und Kinderbekleidung."
+    },
+    "beauty": {
+      "title": "Beauty",
+      "description": "Shoppe Beauty- und Pflegeprodukte."
+    },
+    "home": {
+      "title": "Home",
+      "description": "Shoppe Home- und Living-Produkte."
+    }
+  },
+  "category": {
+    "filters": "Filter",
+    "sortBy": "Sortieren nach",
+    "price": "Preis",
+    "min": "Min",
+    "max": "Max",
+    "inStockOnly": "Nur verfuegbare Artikel",
+    "emptyFilters": "Keine Produkte entsprechen deinen Filtern.",
+    "productCount": "{count} Produkte",
+    "noProducts": "Keine Produkte in dieser Kategorie gefunden.",
+    "womenGallery": "Damenmode Galerie",
+    "womenLook": "Damenmode Look",
+    "slugs": {
+      "women": "Damen",
+      "men": "Herren",
+      "kids": "Kinder",
+      "beauty": "Beauty",
+      "home": "Home",
+      "sale": "Sale",
+      "all": "Alle"
+    },
+    "sort": {
+      "newest": "Neueste",
+      "price-asc": "Preis: niedrig nach hoch",
+      "price-desc": "Preis: hoch nach niedrig",
+      "rating": "Top bewertet"
+    }
+  },
+  "product": {
+    "size": "Groesse",
+    "color": "Farbe",
+    "outOfStock": "Nicht auf Lager",
+    "youMayAlsoLike": "Das koennte dir auch gefallen",
+    "recommendationDescription": "Basierend auf aehnlichen Artikeln und gemeinsamen Kaeufen anderer Kunden.",
+    "recentlyViewed": "Zuletzt angesehen",
+    "addToWishlist": "Zur Wunschliste hinzufuegen",
+    "inStockCount": "Auf Lager ({count} verfuegbar)"
+  },
+  "cart": {
+    "title": "Warenkorb",
+    "orderSummary": "Bestelluebersicht",
+    "subtotal": "Zwischensumme",
+    "discount": "Rabatt",
+    "total": "Gesamt",
+    "clear": "Warenkorb leeren",
+    "emptyTitle": "Dein Warenkorb ist leer",
+    "emptyDescription": "Beginne mit dem Einkauf, um Artikel in den Warenkorb zu legen",
+    "emptyCartShort": "Dein Warenkorb ist leer.",
+    "proceedToCheckout": "Zur Kasse",
+    "viewCartCheckout": "Warenkorb anzeigen und zur Kasse",
+    "promoPlaceholder": "Gutscheincode",
+    "codeApplied": "Code angewendet: {discount}% Rabatt",
+    "codeAppliedLabel": "Code {code} angewendet",
+    "qtyShort": "Menge {qty}",
+    "added": "Hinzugefuegt!",
+    "decreaseQuantity": "Menge verringern",
+    "increaseQuantity": "Menge erhoehen",
+    "removeItem": "Artikel entfernen",
+    "ariaCartItems": "Warenkorb, {count} Artikel"
+  },
+  "checkout": {
+    "title": "Kasse",
+    "progress": "Checkout-Fortschritt",
+    "shipping": "Versand",
+    "payment": "Zahlung",
+    "review": "Pruefung",
+    "shippingAddress": "Lieferadresse",
+    "redirecting": "Weiterleitung zu Stripe...",
+    "payWithStripe": "Mit Karte zahlen (Stripe)",
+    "cancelTitle": "Zahlung abgebrochen",
+    "cancelDescription": "Deine Zahlung wurde abgebrochen. Du kannst den Warenkorb pruefen oder es erneut versuchen.",
+    "backToCart": "Zurueck zum Warenkorb",
+    "successTitle": "Danke fuer deine Bestellung!",
+    "successDescription": "Deine Bestellung ist eingegangen und wird bearbeitet.",
+    "orderId": "Bestellnummer: {orderId}",
+    "sessionId": "Stripe-Session: {sessionId}"
+  },
+  "account": {
+    "userMenu": "Benutzerkonto",
+    "myAccount": "Mein Konto",
+    "name": "Name",
+    "editProfile": "Profil bearbeiten",
+    "orders": "Bestellungen",
+    "notifications": "Benachrichtigungseinstellungen",
+    "securityBilling": "Sicherheit und Abrechnung",
+    "orderNotFound": "Bestellung nicht gefunden.",
+    "backToOrders": "Zurueck zu Bestellungen",
+    "orderNumber": "Bestellung #{orderId}",
+    "deleteAccount": "Konto loeschen",
+    "deleteDescription": "Diese Aktion kann nicht rueckgaengig gemacht werden. Alle deine Daten werden geloescht.",
+    "deleteToConfirm": "zum Bestaetigen.",
+    "deleteConfirmPhrase": "DELETE MY ACCOUNT",
+    "deleteAccountCta": "Mein Konto loeschen",
+    "menu": {
+      "account": "Konto",
+      "profile": "Profil",
+      "orders": "Bestellungen",
+      "addresses": "Adressen",
+      "wishlist": "Wunschliste",
+      "rewards": "Pramien",
+      "tier": "Stufe",
+      "tierStatus": "Stufenstatus",
+      "coupons": "Coupons",
+      "shipping": "Versand",
+      "notifications": "Benachrichtigungen",
+      "security": "Sicherheit",
+      "settings": "Kontoeinstellungen"
+    }
+  },
+  "auth": {
+    "signIn": "Anmelden",
+    "signOut": "Abmelden",
+    "signUp": "Registrieren",
+    "signInTitle": "Melde dich in deinem Konto an",
+    "createAccountTitle": "Erstelle dein Konto",
+    "or": "Oder",
+    "createAccount": "ein neues Konto erstellen",
+    "signInExisting": "mit deinem bestehenden Konto anmelden",
+    "email": "E-Mail-Adresse",
+    "password": "Passwort",
+    "passwordMin": "Passwort (mind. 6 Zeichen)",
+    "confirmPassword": "Passwort bestaetigen",
+    "fullName": "Vollstaendiger Name",
+    "forgotPassword": "Passwort vergessen?",
+    "signingIn": "Anmeldung laeuft...",
+    "creatingAccount": "Konto wird erstellt...",
+    "resetTitle": "Passwort zuruecksetzen",
+    "resetDescription": "Gib deine E-Mail ein und wir senden dir einen Link zum Zuruecksetzen deines Passworts",
+    "resetSent": "E-Mail zum Zuruecksetzen gesendet. Bitte Posteingang pruefen.",
+    "sendReset": "Reset-E-Mail senden",
+    "backToSignIn": "Zurueck zur Anmeldung"
+  },
+  "search": {
+    "title": "Suche",
+    "searchForm": "Suchformular",
+    "inputLabel": "Suchen",
+    "placeholder": "Nach Produkten suchen...",
+    "filterBy": "Filtern nach:",
+    "allCategories": "Alle Kategorien",
+    "showingResultsFor": "Ergebnisse fuer \"{query}\"",
+    "startTyping": "Beginne mit der Eingabe in der Suchleiste, um Produkte zu finden.",
+    "resultSummary": "{count} Ergebnisse fuer \"{query}\" gefunden",
+    "noResults": "Keine Ergebnisse gefunden",
+    "noResultsShort": "Keine Ergebnisse",
+    "noResultsFor": "Wir konnten nichts fuer \"{query}\" finden",
+    "tryDifferent": "Versuche andere Suchbegriffe oder durchsuche unsere Kategorien.",
+    "browseWomen": "Damen ansehen",
+    "browseMen": "Herren ansehen",
+    "didYouMean": "Meintest du",
+    "suggestions": {
+      "womenDresses": "Damenkleider",
+      "menShirts": "Herrenhemden",
+      "kidsShoes": "Kinderschuhe"
+    }
+  },
+  "giftCard": {
+    "title": "Geschenkkarten",
+    "description": "Schenke Stil. Unsere Geschenkkarten koennen fuer jeden Einkauf verwendet werden.",
+    "redeem": "Geschenkkarte einloesen",
+    "redeemTitle": "Geschenkkarte einloesen"
+  },
+  "wishlist": {
+    "empty": "Deine Wunschliste ist leer."
+  },
+  "stores": {
+    "locate": "Store finden",
+    "allStores": "Alle Stores",
+    "phone": "Telefon",
+    "hours": "Oeffnungszeiten",
+    "closed": "Geschlossen"
+  },
+  "editorial": {
+    "brands": "Marken",
+    "campaigns": "Kampagnen",
+    "trends": "Trends",
+    "noCampaigns": "Keine aktiven Kampagnen.",
+    "allCampaigns": "Alle Kampagnen",
+    "allTrends": "Alle Trends",
+    "trendNotFound": "Trend nicht gefunden."
+  },
+  "returns": {
+    "startReturn": "Rueckgabe starten"
+  },
+  "reviews": {
+    "noReviews": "Noch keine Bewertungen.",
+    "anonymous": "Anonym",
+    "verified": "Verifiziert",
+    "rating": "Bewertung (1-5)",
+    "titleOptional": "Titel (optional)",
+    "reviewOptional": "Bewertung (optional)",
+    "submitReview": "Bewertung absenden",
+    "totalReviews": "{count} Bewertungen",
+    "stars": "{count} Sterne",
+    "sortReviews": "Bewertungen sortieren",
+    "sort": {
+      "mostRecent": "Neueste",
+      "highest": "Hoechste Bewertung",
+      "lowest": "Niedrigste Bewertung",
+      "helpful": "Hilfreichste"
+    },
+    "ratingAria": "Bewertung: {rating} von {max}"
+  },
+  "qa": {
+    "askQuestion": "Eine Frage stellen",
+    "placeholder": "z. B. Faellt der Artikel groessengerecht aus?",
+    "rules": "Mind. 10 Zeichen, max. 500.",
+    "submitQuestion": "Frage absenden",
+    "invalidQuestion": "Ungueltige Frage",
+    "failedSubmit": "Senden fehlgeschlagen",
+    "empty": "Noch keine Fragen. Stelle als Erste/r eine Frage.",
+    "customer": "Kunde",
+    "answer": "Antwort"
+  },
+  "errors": {
+    "notFoundTitle": "Seite nicht gefunden",
+    "notFoundDescription": "Die angeforderte Seite konnte nicht gefunden werden.",
+    "signInFailed": "Anmeldung fehlgeschlagen",
+    "createAccountFailed": "Kontoerstellung fehlgeschlagen",
+    "passwordMismatch": "Passwoerter stimmen nicht ueberein",
+    "passwordTooShort": "Das Passwort muss mindestens 6 Zeichen haben",
+    "resetFailed": "Senden der Reset-E-Mail fehlgeschlagen",
+    "deleteAccountFailed": "Konto konnte nicht geloescht werden",
+    "invalidPromo": "Ungueltiger oder abgelaufener Code"
+  }
+}

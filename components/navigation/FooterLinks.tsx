@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import { cn } from "@/lib/utils";
 
 export interface FooterLinkItem {
@@ -25,12 +25,12 @@ export default function FooterLinks({
       <ul className="space-y-2">
         {links.map((link) => (
           <li key={link.href}>
-            <Link
+            <LocaleLink
               href={link.href}
               className="text-gray-400 hover:text-white transition-colors"
             >
               {link.name}
-            </Link>
+            </LocaleLink>
           </li>
         ))}
       </ul>

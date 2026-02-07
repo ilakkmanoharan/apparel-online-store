@@ -3,28 +3,35 @@
 import { useState } from "react";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
-import { usePromoStore } from "@/store/promoStore";
-import { useCartStore } from "@/store/cartStore";
-import { validatePromoCode } from "@/lib/promo/validatePromo";
 import Toast from "@/components/common/Toast";
+import { useTranslations } from "@/hooks/useTranslations";
+import { validatePromoCode } from "@/lib/promo/validatePromo";
+import { useCartStore } from "@/store/cartStore";
+import { usePromoStore } from "@/store/promoStore";
 
 export default function PromoCodeInput() {
   const [code, setCode] = useState("");
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const { code: appliedCode, setPromo, clearPromo } = usePromoStore();
-  const getTotal = useCartStore((s) => s.getTotal);
+  const getTotal = useCartStore((state) => state.getTotal);
   const subtotal = getTotal();
+  const t = useTranslations();
 
   const handleApply = () => {
     const trimmed = code.trim().toUpperCase();
-    if (!trimmed) return;
+
+    if (!trimmed) {
+      return;
+    }
+
     const result = validatePromoCode(trimmed, subtotal);
+
     if (result.valid && result.discountPercent != null) {
       setPromo(trimmed, result.discountPercent);
-      setMessage({ text: `Code applied: ${result.discountPercent}% off`, type: "success" });
+      setMessage({ text: t("cart.codeApplied", { discount: result.discountPercent }), type: "success" });
       setCode("");
     } else {
-      setMessage({ text: result.message ?? "Invalid or expired code", type: "error" });
+      setMessage({ text: result.message ?? t("errors.invalidPromo"), type: "error" });
     }
   };
 
@@ -37,28 +44,26 @@ export default function PromoCodeInput() {
     <div className="space-y-2">
       {appliedCode ? (
         <div className="flex items-center justify-between text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg">
-          <span>Code {appliedCode} applied</span>
+          <span>{t("cart.codeAppliedLabel", { code: appliedCode })}</span>
           <button type="button" onClick={handleRemove} className="underline hover:no-underline">
-            Remove
+            {t("common.remove")}
           </button>
         </div>
       ) : (
         <div className="flex gap-2">
           <Input
-            placeholder="Promo code"
+            placeholder={t("cart.promoPlaceholder")}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleApply()}
             className="flex-1"
           />
           <Button variant="outline" size="md" onClick={handleApply}>
-            Apply
+            {t("common.apply")}
           </Button>
         </div>
       )}
-      {message && (
-        <Toast message={message.text} variant={message.type} />
-      )}
+      {message && <Toast message={message.text} variant={message.type} />}
     </div>
   );
 }

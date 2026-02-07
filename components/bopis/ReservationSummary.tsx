@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 
 interface ReservationSummaryProps {
   reservationId: string;
@@ -25,9 +25,9 @@ export default function ReservationSummary({
       <h3 className="font-semibold mb-2">Pickup reservation</h3>
       <p className="text-sm text-gray-600">
         <strong>Store:</strong>{" "}
-        <Link href={`/stores/${storeId}`} className="text-blue-600 hover:underline">
+        <LocaleLink href={`/stores/${storeId}`} className="text-blue-600 hover:underline">
           {storeName}
-        </Link>
+        </LocaleLink>
       </p>
       <p className="text-sm text-gray-600">
         <strong>Reservation ID:</strong> {reservationId}

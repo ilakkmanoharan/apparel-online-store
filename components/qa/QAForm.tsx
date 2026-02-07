@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
+import { useTranslations } from "@/hooks/useTranslations";
 import { validateQuestion } from "@/lib/qa/validation";
 
 interface QAFormProps {
@@ -12,30 +13,29 @@ interface QAFormProps {
   className?: string;
 }
 
-export default function QAForm({
-  productId,
-  onSubmit,
-  disabled = false,
-  className = "",
-}: QAFormProps) {
+export default function QAForm({ productId, onSubmit, disabled = false, className = "" }: QAFormProps) {
   const [question, setQuestion] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const t = useTranslations();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     const validation = validateQuestion(question);
+
     if (!validation.valid) {
-      setError(validation.error ?? "Invalid question");
+      setError(validation.error ?? t("qa.invalidQuestion"));
       return;
     }
+
     setLoading(true);
+
     try {
       await onSubmit(question.trim());
       setQuestion("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit");
+      setError(err instanceof Error ? err.message : t("qa.failedSubmit"));
     } finally {
       setLoading(false);
     }
@@ -43,24 +43,18 @@ export default function QAForm({
 
   return (
     <form onSubmit={handleSubmit} className={className}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        Ask a question
-      </label>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{t("qa.askQuestion")}</label>
       <Input
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
-        placeholder="e.g. Does this run true to size?"
+        placeholder={t("qa.placeholder")}
         disabled={disabled}
         className="w-full"
       />
-      <p className="mt-1 text-xs text-gray-500">Min 10 characters, max 500.</p>
+      <p className="mt-1 text-xs text-gray-500">{t("qa.rules")}</p>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-      <Button
-        type="submit"
-        disabled={disabled || loading || question.trim().length < 10}
-        className="mt-2"
-      >
-        {loading ? "Submitting…" : "Submit question"}
+      <Button type="submit" disabled={disabled || loading || question.trim().length < 10} className="mt-2">
+        {loading ? t("common.submitting") : t("qa.submitQuestion")}
       </Button>
     </form>
   );

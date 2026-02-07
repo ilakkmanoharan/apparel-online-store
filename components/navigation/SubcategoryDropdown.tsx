@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import type { NavItem } from "@/lib/config/navigation";
 
 interface SubcategoryDropdownProps {
@@ -14,7 +14,7 @@ export default function SubcategoryDropdown({ item, isOpen, onClose }: Subcatego
   return (
     <div className="absolute left-0 top-full mt-0 w-64 rounded-lg border bg-white shadow-lg z-50 py-2">
       {item.children.map((child) => (
-        <Link
+        <LocaleLink
           key={child.href}
           href={child.href}
           onClick={onClose}
@@ -22,7 +22,7 @@ export default function SubcategoryDropdown({ item, isOpen, onClose }: Subcatego
         >
           {child.label}
           {child.badge && <span className="ml-2 text-xs bg-gray-900 text-white px-1.5 py-0.5 rounded">{child.badge}</span>}
-        </Link>
+        </LocaleLink>
       ))}
     </div>
   );

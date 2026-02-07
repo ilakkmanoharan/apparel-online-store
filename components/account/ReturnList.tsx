@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import type { ReturnRequest } from "@/types/returns";
 import ReturnStatusBadge from "@/components/returns/ReturnStatusBadge";
 import { formatPrice } from "@/lib/utils";
@@ -14,9 +14,9 @@ export default function ReturnList({ returns }: ReturnListProps) {
     return (
       <div className="text-center py-12 text-gray-600">
         <p>You have no returns.</p>
-        <Link href="/account/orders" className="mt-4 inline-block text-blue-600 underline">
+        <LocaleLink href="/account/orders" className="mt-4 inline-block text-blue-600 underline">
           View orders
-        </Link>
+        </LocaleLink>
       </div>
     );
   }
@@ -25,7 +25,7 @@ export default function ReturnList({ returns }: ReturnListProps) {
     <ul className="divide-y divide-gray-200">
       {returns.map((r) => (
         <li key={r.id} className="py-4">
-          <Link href={`/account/orders/${r.orderId}`} className="block hover:bg-gray-50 -mx-4 px-4 py-2 rounded">
+          <LocaleLink href={`/account/orders/${r.orderId}`} className="block hover:bg-gray-50 -mx-4 px-4 py-2 rounded">
             <div className="flex justify-between items-start">
               <div>
                 <p className="font-medium text-gray-900">Return #{r.id.slice(-8)}</p>
@@ -41,7 +41,7 @@ export default function ReturnList({ returns }: ReturnListProps) {
                 )}
               </div>
             </div>
-          </Link>
+          </LocaleLink>
         </li>
       ))}
     </ul>

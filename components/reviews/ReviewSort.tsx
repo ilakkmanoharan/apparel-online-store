@@ -1,16 +1,10 @@
 "use client";
 
 import Select from "@/components/common/Select";
+import { useTranslations } from "@/hooks/useTranslations";
 import { cn } from "@/lib/utils";
 
 export type ReviewSortOption = "recent" | "rating-desc" | "rating-asc" | "helpful";
-
-const OPTIONS: { value: ReviewSortOption; label: string }[] = [
-  { value: "recent", label: "Most recent" },
-  { value: "rating-desc", label: "Highest rating" },
-  { value: "rating-asc", label: "Lowest rating" },
-  { value: "helpful", label: "Most helpful" },
-];
 
 interface ReviewSortProps {
   value: ReviewSortOption;
@@ -19,10 +13,19 @@ interface ReviewSortProps {
 }
 
 export default function ReviewSort({ value, onChange, className }: ReviewSortProps) {
+  const t = useTranslations();
+
+  const options = [
+    { value: "recent", label: t("reviews.sort.mostRecent") },
+    { value: "rating-desc", label: t("reviews.sort.highest") },
+    { value: "rating-asc", label: t("reviews.sort.lowest") },
+    { value: "helpful", label: t("reviews.sort.helpful") },
+  ];
+
   return (
     <Select
-      label="Sort reviews"
-      options={OPTIONS}
+      label={t("reviews.sortReviews")}
+      options={options}
       value={value}
       onChange={(e) => onChange(e.target.value as ReviewSortOption)}
       className={cn("max-w-[180px]", className)}

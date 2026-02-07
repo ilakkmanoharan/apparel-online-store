@@ -3,6 +3,8 @@ import { getAdminDb } from "@/lib/firebase/admin";
 import { getProductsByCategoryPaginated } from "@/lib/firebase/productsByCategory";
 import { parsePLPPageFromSearchParams, parsePLPSortFromSearchParams } from "@/lib/config/plp";
 import { PLP_DEFAULT_PAGE_SIZE } from "@/lib/config/plp";
+import { getLocaleFromRequest } from "@/lib/i18n/request";
+import { isLocale } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
 
@@ -27,11 +29,14 @@ export async function GET(
     const pageSize = pageSizeParam
       ? Math.min(48, Math.max(1, parseInt(pageSizeParam, 10)) || PLP_DEFAULT_PAGE_SIZE)
       : PLP_DEFAULT_PAGE_SIZE;
+    const localeParam = request.nextUrl.searchParams.get("locale");
+    const locale = localeParam && isLocale(localeParam) ? localeParam : getLocaleFromRequest(request);
 
     const result = await getProductsByCategoryPaginated(db, slug, {
       page,
       pageSize,
       sort,
+      locale,
     });
 
     return NextResponse.json({

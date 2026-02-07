@@ -6,8 +6,14 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import type { QueryConstraint } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { Product } from "@/types";
+import {
+  getProductNameSearchFields,
+  localizeProduct,
+  normalizeLocale,
+} from "@/lib/firebase/products-i18n";
 
 export interface SearchFilters {
   category?: string;
@@ -21,41 +27,68 @@ export interface SearchResult {
 
 export async function searchProducts(
   term: string,
-  filters: SearchFilters = {}
+  filters: SearchFilters = {},
+  localeValue?: string
 ): Promise<SearchResult> {
+  const locale = normalizeLocale(localeValue);
+  const searchFields = getProductNameSearchFields(locale);
+  let lastError: unknown;
+
+  for (let i = 0; i < searchFields.length; i += 1) {
+    const searchField = searchFields[i];
+    try {
+      const products = await runSearchQuery(term, filters, searchField);
+      if (products.length > 0 || i === searchFields.length - 1) {
+        return {
+          products: products.map((product) => localizeProduct(product, locale)),
+        };
+      }
+    } catch (error) {
+      lastError = error;
+      if (i === searchFields.length - 1) {
+        throw error;
+      }
+    }
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
+
+  return { products: [] };
+}
+
+async function runSearchQuery(
+  term: string,
+  filters: SearchFilters,
+  searchField: string
+): Promise<Product[]> {
   const trimmed = term.trim();
   const productsRef = collection(db, "products");
+  const constraints: QueryConstraint[] = [];
 
-  // Basic Firestore search: name prefix match + optional category filter.
+  // Basic Firestore search: localized name prefix match + optional category filter.
   // This is intentionally simple; a production app would use a dedicated search service.
-  const constraints: any[] = [];
-
   if (trimmed) {
-    constraints.push(
-      where("name", ">=", trimmed),
-      where("name", "<=", trimmed + "\uf8ff")
-    );
+    constraints.push(where(searchField, ">=", trimmed), where(searchField, "<=", trimmed + "\uf8ff"));
   }
 
   if (filters.category) {
     constraints.push(where("category", "==", filters.category));
   }
 
-  constraints.push(orderBy("name"), limit(40));
+  constraints.push(orderBy(searchField), limit(40));
 
   const q = query(productsRef, ...constraints);
   const snapshot = await getDocs(q);
 
-  const products: Product[] = snapshot.docs.map((doc) => {
-    const data = doc.data() as any;
+  return snapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data() as any;
     return {
-      id: doc.id,
+      id: docSnapshot.id,
       ...data,
       createdAt: data.createdAt?.toDate?.() ?? new Date(),
       updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
     } as Product;
   });
-
-  return { products };
 }
-

@@ -1,7 +1,9 @@
 "use client";
 
 import type { Address } from "@/types";
-import { formatPrice } from "@/lib/utils";
+import { useI18n } from "@/components/common/I18nProvider";
+import { getCurrencyForLocale } from "@/lib/currency/config";
+import { formatPrice } from "@/lib/currency/format";
 import type { CartItem } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +34,9 @@ export default function ReviewStep({
   total,
   className,
 }: ReviewStepProps) {
+  const { locale } = useI18n();
+  const currency = getCurrencyForLocale(locale);
+
   return (
     <div className={cn("space-y-6", className)}>
       <h2 className="text-lg font-semibold text-gray-900">Review your order</h2>
@@ -61,7 +66,7 @@ export default function ReviewStep({
                 {item.product.name} × {item.quantity}
               </span>
               <span className="text-gray-900">
-                {formatPrice(item.product.price * item.quantity)}
+                {formatPrice(item.product.price * item.quantity, currency, locale)}
               </span>
             </li>
           ))}
@@ -71,23 +76,23 @@ export default function ReviewStep({
       <div className="border-t border-gray-200 pt-4 space-y-1 text-sm">
         <div className="flex justify-between text-gray-600">
           <span>Subtotal</span>
-          <span>{formatPrice(subtotal)}</span>
+          <span>{formatPrice(subtotal, currency, locale)}</span>
         </div>
         {shippingAmount > 0 && (
           <div className="flex justify-between text-gray-600">
             <span>Shipping</span>
-            <span>{formatPrice(shippingAmount)}</span>
+            <span>{formatPrice(shippingAmount, currency, locale)}</span>
           </div>
         )}
         {taxAmount > 0 && (
           <div className="flex justify-between text-gray-600">
             <span>Tax</span>
-            <span>{formatPrice(taxAmount)}</span>
+            <span>{formatPrice(taxAmount, currency, locale)}</span>
           </div>
         )}
         <div className="flex justify-between font-semibold text-gray-900 pt-2">
           <span>Total</span>
-          <span>{formatPrice(total)}</span>
+          <span>{formatPrice(total, currency, locale)}</span>
         </div>
       </div>
     </div>

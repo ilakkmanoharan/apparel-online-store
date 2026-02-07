@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import Image from "next/image";
+import { useI18n } from "@/components/common/I18nProvider";
+import { getCurrencyForLocale } from "@/lib/currency/config";
+import { formatPrice } from "@/lib/currency/format";
 import { CartItem as CartItemType } from "@/types";
-import { formatPrice } from "@/lib/utils";
 import { MinusIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { cn } from "@/lib/utils";
 
@@ -22,11 +24,13 @@ export default function MiniCartItem({
   compact,
   className,
 }: MiniCartItemProps) {
+  const { locale } = useI18n();
+  const currency = getCurrencyForLocale(locale);
   const lineTotal = item.product.price * item.quantity;
 
   return (
     <div className={cn("flex gap-3 py-3 border-b border-gray-100 last:border-0", className)}>
-      <Link
+      <LocaleLink
         href={`/products/${item.product.id}`}
         className="flex-shrink-0 w-16 h-16 bg-gray-100 rounded-lg overflow-hidden"
       >
@@ -43,13 +47,13 @@ export default function MiniCartItem({
             No image
           </div>
         )}
-      </Link>
+      </LocaleLink>
       <div className="flex-1 min-w-0">
-        <Link href={`/products/${item.product.id}`}>
+        <LocaleLink href={`/products/${item.product.id}`}>
           <p className="font-medium text-gray-900 truncate hover:text-gray-600 text-sm">
             {item.product.name}
           </p>
-        </Link>
+        </LocaleLink>
         <p className="text-xs text-gray-500">
           {item.selectedSize} · {item.selectedColor}
         </p>
@@ -84,7 +88,7 @@ export default function MiniCartItem({
         )}
       </div>
       <div className="text-right flex-shrink-0">
-        <p className="font-medium text-gray-900 text-sm">{formatPrice(lineTotal)}</p>
+        <p className="font-medium text-gray-900 text-sm">{formatPrice(lineTotal, currency, locale)}</p>
       </div>
     </div>
   );

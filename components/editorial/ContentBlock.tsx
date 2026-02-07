@@ -1,15 +1,15 @@
 "use client";
 
 import type { ContentBlock as ContentBlockType } from "@/types/editorial";
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 
 export default function ContentBlock({ block }: { block: ContentBlockType }) {
   if (block.type === "cta" && block.ctaHref && block.ctaLabel) {
     return (
       <div className="py-4">
-        <Link href={block.ctaHref} className="inline-block px-4 py-2 bg-gray-900 text-white rounded font-medium">
+        <LocaleLink href={block.ctaHref} className="inline-block px-4 py-2 bg-gray-900 text-white rounded font-medium">
           {block.ctaLabel}
-        </Link>
+        </LocaleLink>
       </div>
     );
   }

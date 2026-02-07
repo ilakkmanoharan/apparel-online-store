@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { getLocaleDir } from "@/lib/i18n/locales";
+import { getLocaleFromServerRequest } from "@/lib/i18n/request";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,14 +17,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = getLocaleFromServerRequest();
+
   return (
-    <html lang="en">
+    <html lang={locale} dir={getLocaleDir(locale)}>
       <body className={inter.className}>
-        <AuthProvider>
-          <Header />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

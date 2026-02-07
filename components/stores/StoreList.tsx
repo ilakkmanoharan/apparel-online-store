@@ -1,4 +1,4 @@
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import StoreCard from "./StoreCard";
 import type { StoreLocation } from "@/types/store";
 

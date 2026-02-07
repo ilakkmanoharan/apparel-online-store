@@ -1,5 +1,8 @@
 "use client";
 
+import { useI18n } from "@/components/common/I18nProvider";
+import { getCurrencyForLocale } from "@/lib/currency/config";
+import { formatPrice } from "@/lib/currency/format";
 import { cn } from "@/lib/utils";
 
 export interface ShippingOption {
@@ -23,6 +26,9 @@ export default function ShippingMethodSelect({
   onChange,
   className,
 }: ShippingMethodSelectProps) {
+  const { locale } = useI18n();
+  const currency = getCurrencyForLocale(locale);
+
   return (
     <div className={cn("space-y-2", className)}>
       <label className="block text-sm font-medium text-gray-700">Shipping method</label>
@@ -53,7 +59,7 @@ export default function ShippingMethodSelect({
               )}
             </div>
             <span className="font-medium text-gray-900">
-              {opt.price === 0 ? "Free" : `$${opt.price.toFixed(2)}`}
+              {opt.price === 0 ? "Free" : formatPrice(opt.price, currency, locale)}
             </span>
           </label>
         ))}

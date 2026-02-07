@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import type { StoreLocation } from "@/types/store";
 
 interface PickupOptionCardProps {
@@ -34,9 +34,9 @@ export default function PickupOptionCard({
         )}
       </div>
       <div className="flex gap-2 mt-2">
-        <Link href={`/stores/${store.id}`} className="text-sm text-blue-600 hover:underline">
+        <LocaleLink href={`/stores/${store.id}`} className="text-sm text-blue-600 hover:underline">
           Store details
-        </Link>
+        </LocaleLink>
         {available && onSelect && (
           <button
             type="button"

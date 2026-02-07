@@ -1,4 +1,4 @@
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 
 interface EmptyStateProps {
   title: string;
@@ -17,9 +17,9 @@ export default function EmptyState({ title, description, actionLabel, actionHref
       {(actionLabel && (actionHref || onAction)) && (
         <div className="mt-4">
           {actionHref ? (
-            <Link href={actionHref} className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800">
+            <LocaleLink href={actionHref} className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800">
               {actionLabel}
-            </Link>
+            </LocaleLink>
           ) : (
             <button type="button" onClick={onAction} className="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800">
               {actionLabel}

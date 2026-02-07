@@ -1,0 +1,353 @@
+{
+  "brand": {
+    "name": "Boutique de Vetements"
+  },
+  "common": {
+    "addToCart": "Ajouter au panier",
+    "apply": "Appliquer",
+    "backToHome": "Retour a l'accueil",
+    "cancel": "Annuler",
+    "clear": "Effacer",
+    "clearFilters": "Effacer les filtres",
+    "close": "Fermer",
+    "continueShopping": "Continuer vos achats",
+    "deleting": "Suppression...",
+    "loading": "Chargement...",
+    "new": "Nouveau",
+    "next": "Suivant",
+    "nextPage": "Page suivante",
+    "noImage": "Aucune image",
+    "pageOf": "Page {page} sur {totalPages}",
+    "pagination": "Pagination",
+    "previous": "Precedent",
+    "previousPage": "Page precedente",
+    "remove": "Retirer",
+    "select": "Selectionner",
+    "sending": "Envoi...",
+    "submitting": "Envoi...",
+    "tryAgain": "Reessayer"
+  },
+  "banner": {
+    "freeShipping": "Livraison gratuite pour les commandes de plus de 50 $ et retours gratuits en magasin.",
+    "shopDeals": "Voir les offres du jour"
+  },
+  "nav": {
+    "mainNavigation": "Navigation principale",
+    "toggleMenu": "Afficher le menu de navigation",
+    "departments": "Rayons",
+    "women": "Femmes",
+    "men": "Hommes",
+    "kids": "Enfants",
+    "home": "Maison",
+    "beauty": "Beaute",
+    "sale": "Promos",
+    "newArrivals": "Nouveautes",
+    "dresses": "Robes",
+    "tops": "Hauts",
+    "jeans": "Jeans",
+    "shirts": "Chemises",
+    "pants": "Pantalons",
+    "outerwear": "Manteaux",
+    "girls": "Filles",
+    "boys": "Garcons",
+    "baby": "Bebe",
+    "womensSale": "Promos femmes",
+    "mensSale": "Promos hommes",
+    "kidsSale": "Promos enfants",
+    "womenNewArrivalsDescription": "Dernieres tendances et nouveautes de saison.",
+    "dressesDescription": "Robes de travail, decontractees et de ceremonie.",
+    "topsDescription": "T-shirts, blouses et plus.",
+    "jeansDescription": "Coupes skinny, droites et relax.",
+    "menNewArrivalsDescription": "Styles frais pour tous les jours.",
+    "shirtsDescription": "Chemises decontractees et habillees.",
+    "pantsDescription": "Chinos, joggers et plus.",
+    "outerwearDescription": "Vestes et manteaux pour toutes les saisons."
+  },
+  "footer": {
+    "shop": "Boutique",
+    "help": "Aide",
+    "about": "A propos",
+    "contactUs": "Contactez-nous",
+    "shipping": "Livraison",
+    "returns": "Retours",
+    "faq": "FAQ",
+    "aboutUs": "Qui sommes-nous",
+    "careers": "Carrieres",
+    "sustainability": "Durabilite",
+    "press": "Presse",
+    "brandDescription": "Votre destination pour les dernieres tendances mode et des vetements de qualite.",
+    "rights": "© {year} Boutique de Vetements. Tous droits reserves."
+  },
+  "home": {
+    "heroTitle": "Trouvez votre style",
+    "heroSubtitle": "Achetez les dernieres tendances mode et trouvez votre look parfait",
+    "shopNow": "Acheter maintenant",
+    "shopByCategory": "Acheter par categorie",
+    "featuredProducts": "Produits vedettes",
+    "noFeaturedProducts": "Aucun produit vedette pour le moment.",
+    "categories": {
+      "women": {
+        "name": "Femmes",
+        "description": "Derniere mode femme"
+      },
+      "men": {
+        "name": "Hommes",
+        "description": "Mode homme elegante"
+      },
+      "kids": {
+        "name": "Enfants",
+        "description": "Vetements enfants ludiques"
+      }
+    }
+  },
+  "static": {
+    "women": {
+      "title": "Nouveautes femmes",
+      "description": "Decouvrez les derniers looks, tenues selectionnees et tendances de saison pour femmes."
+    },
+    "men": {
+      "title": "Nouveautes hommes",
+      "description": "Explorez les nouvelles collections homme, des essentiels elegants aux looks weekend decontractes."
+    },
+    "kids": {
+      "title": "Favoris enfants",
+      "description": "Achetez des styles ludiques pour les petits, des basiques quotidiens aux tenues d'occasion."
+    },
+    "sale": {
+      "title": "Offres du jour et promotions",
+      "description": "Grosses reductions sur les vetements femmes, hommes et enfants."
+    },
+    "beauty": {
+      "title": "Beaute",
+      "description": "Achetez des produits de beaute et de soin personnel."
+    },
+    "home": {
+      "title": "Maison",
+      "description": "Achetez des produits maison et art de vivre."
+    }
+  },
+  "category": {
+    "filters": "Filtres",
+    "sortBy": "Trier par",
+    "price": "Prix",
+    "min": "Min",
+    "max": "Max",
+    "inStockOnly": "En stock uniquement",
+    "emptyFilters": "Aucun produit ne correspond a vos filtres.",
+    "productCount": "{count} produits",
+    "noProducts": "Aucun produit trouve dans cette categorie.",
+    "womenGallery": "Galerie mode femme",
+    "womenLook": "Look mode femme",
+    "slugs": {
+      "women": "Femmes",
+      "men": "Hommes",
+      "kids": "Enfants",
+      "beauty": "Beaute",
+      "home": "Maison",
+      "sale": "Promos",
+      "all": "Tous"
+    },
+    "sort": {
+      "newest": "Plus recents",
+      "price-asc": "Prix: croissant",
+      "price-desc": "Prix: decroissant",
+      "rating": "Mieux notes"
+    }
+  },
+  "product": {
+    "size": "Taille",
+    "color": "Couleur",
+    "outOfStock": "Rupture de stock",
+    "youMayAlsoLike": "Vous pourriez aussi aimer",
+    "recommendationDescription": "Base sur des articles similaires et les achats associes d'autres clients.",
+    "recentlyViewed": "Recemment consultes",
+    "addToWishlist": "Ajouter a la liste d'envies",
+    "inStockCount": "En stock ({count} disponibles)"
+  },
+  "cart": {
+    "title": "Panier",
+    "orderSummary": "Resume de commande",
+    "subtotal": "Sous-total",
+    "discount": "Remise",
+    "total": "Total",
+    "clear": "Vider le panier",
+    "emptyTitle": "Votre panier est vide",
+    "emptyDescription": "Commencez vos achats pour ajouter des articles a votre panier",
+    "emptyCartShort": "Votre panier est vide.",
+    "proceedToCheckout": "Passer au paiement",
+    "viewCartCheckout": "Voir le panier et payer",
+    "promoPlaceholder": "Code promo",
+    "codeApplied": "Code applique: {discount}% de reduction",
+    "codeAppliedLabel": "Code {code} applique",
+    "qtyShort": "Qt {qty}",
+    "added": "Ajoute!",
+    "decreaseQuantity": "Diminuer la quantite",
+    "increaseQuantity": "Augmenter la quantite",
+    "removeItem": "Retirer l'article",
+    "ariaCartItems": "Panier, {count} articles"
+  },
+  "checkout": {
+    "title": "Paiement",
+    "progress": "Progression du paiement",
+    "shipping": "Livraison",
+    "payment": "Paiement",
+    "review": "Verification",
+    "shippingAddress": "Adresse de livraison",
+    "redirecting": "Redirection vers Stripe...",
+    "payWithStripe": "Payer par carte (Stripe)",
+    "cancelTitle": "Paiement annule",
+    "cancelDescription": "Votre paiement a ete annule. Vous pouvez verifier votre panier ou reessayer.",
+    "backToCart": "Retour au panier",
+    "successTitle": "Merci pour votre commande!",
+    "successDescription": "Votre commande a ete recue et est en cours de traitement.",
+    "orderId": "ID de commande: {orderId}",
+    "sessionId": "Session Stripe: {sessionId}"
+  },
+  "account": {
+    "userMenu": "Compte utilisateur",
+    "myAccount": "Mon compte",
+    "name": "Nom",
+    "editProfile": "Modifier le profil",
+    "orders": "Commandes",
+    "notifications": "Preferences de notification",
+    "securityBilling": "Securite et facturation",
+    "orderNotFound": "Commande introuvable.",
+    "backToOrders": "Retour aux commandes",
+    "orderNumber": "Commande #{orderId}",
+    "deleteAccount": "Supprimer le compte",
+    "deleteDescription": "Cette action est irreversible. Toutes vos donnees seront supprimees.",
+    "deleteToConfirm": "pour confirmer.",
+    "deleteConfirmPhrase": "DELETE MY ACCOUNT",
+    "deleteAccountCta": "Supprimer mon compte",
+    "menu": {
+      "account": "Compte",
+      "profile": "Profil",
+      "orders": "Commandes",
+      "addresses": "Adresses",
+      "wishlist": "Liste d'envies",
+      "rewards": "Recompenses",
+      "tier": "Niveau",
+      "tierStatus": "Statut du niveau",
+      "coupons": "Coupons",
+      "shipping": "Livraison",
+      "notifications": "Notifications",
+      "security": "Securite",
+      "settings": "Parametres du compte"
+    }
+  },
+  "auth": {
+    "signIn": "Se connecter",
+    "signOut": "Se deconnecter",
+    "signUp": "S'inscrire",
+    "signInTitle": "Connectez-vous a votre compte",
+    "createAccountTitle": "Creez votre compte",
+    "or": "Ou",
+    "createAccount": "creer un nouveau compte",
+    "signInExisting": "vous connecter a votre compte existant",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "passwordMin": "Mot de passe (min. 6 caracteres)",
+    "confirmPassword": "Confirmer le mot de passe",
+    "fullName": "Nom complet",
+    "forgotPassword": "Mot de passe oublie?",
+    "signingIn": "Connexion...",
+    "creatingAccount": "Creation du compte...",
+    "resetTitle": "Reinitialisez votre mot de passe",
+    "resetDescription": "Entrez votre e-mail et nous vous enverrons un lien pour reinitialiser votre mot de passe",
+    "resetSent": "E-mail de reinitialisation envoye. Verifiez votre boite de reception.",
+    "sendReset": "Envoyer l'e-mail de reinitialisation",
+    "backToSignIn": "Retour a la connexion"
+  },
+  "search": {
+    "title": "Recherche",
+    "searchForm": "Formulaire de recherche",
+    "inputLabel": "Rechercher",
+    "placeholder": "Rechercher des produits...",
+    "filterBy": "Filtrer par:",
+    "allCategories": "Toutes les categories",
+    "showingResultsFor": "Resultats pour \"{query}\"",
+    "startTyping": "Commencez a taper dans la barre de recherche pour trouver des produits.",
+    "resultSummary": "{count} resultats trouves pour \"{query}\"",
+    "noResults": "Aucun resultat",
+    "noResultsShort": "Pas de resultats",
+    "noResultsFor": "Nous n'avons rien trouve pour \"{query}\"",
+    "tryDifferent": "Essayez d'autres mots-cles ou parcourez nos categories.",
+    "browseWomen": "Voir femmes",
+    "browseMen": "Voir hommes",
+    "didYouMean": "Vouliez-vous dire",
+    "suggestions": {
+      "womenDresses": "Robes femme",
+      "menShirts": "Chemises homme",
+      "kidsShoes": "Chaussures enfants"
+    }
+  },
+  "giftCard": {
+    "title": "Cartes cadeaux",
+    "description": "Offrez le style en cadeau. Nos cartes cadeaux peuvent etre utilisees pour tout achat.",
+    "redeem": "Utiliser une carte cadeau",
+    "redeemTitle": "Utiliser une carte cadeau"
+  },
+  "wishlist": {
+    "empty": "Votre liste d'envies est vide."
+  },
+  "stores": {
+    "locate": "Trouver un magasin",
+    "allStores": "Tous les magasins",
+    "phone": "Telephone",
+    "hours": "Horaires",
+    "closed": "Ferme"
+  },
+  "editorial": {
+    "brands": "Marques",
+    "campaigns": "Campagnes",
+    "trends": "Tendances",
+    "noCampaigns": "Aucune campagne active.",
+    "allCampaigns": "Toutes les campagnes",
+    "allTrends": "Toutes les tendances",
+    "trendNotFound": "Tendance introuvable."
+  },
+  "returns": {
+    "startReturn": "Demarrer un retour"
+  },
+  "reviews": {
+    "noReviews": "Pas encore d'avis.",
+    "anonymous": "Anonyme",
+    "verified": "Verifie",
+    "rating": "Note (1-5)",
+    "titleOptional": "Titre (optionnel)",
+    "reviewOptional": "Avis (optionnel)",
+    "submitReview": "Envoyer l'avis",
+    "totalReviews": "{count} avis",
+    "stars": "{count} etoiles",
+    "sortReviews": "Trier les avis",
+    "sort": {
+      "mostRecent": "Plus recents",
+      "highest": "Meilleure note",
+      "lowest": "Note la plus basse",
+      "helpful": "Les plus utiles"
+    },
+    "ratingAria": "Note: {rating} sur {max}"
+  },
+  "qa": {
+    "askQuestion": "Poser une question",
+    "placeholder": "ex. Taille-t-il normalement?",
+    "rules": "Min 10 caracteres, max 500.",
+    "submitQuestion": "Envoyer la question",
+    "invalidQuestion": "Question invalide",
+    "failedSubmit": "Echec de l'envoi",
+    "empty": "Aucune question pour le moment. Soyez le premier a poser une question.",
+    "customer": "Client",
+    "answer": "Reponse"
+  },
+  "errors": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundDescription": "La page demandee est introuvable.",
+    "signInFailed": "Echec de connexion",
+    "createAccountFailed": "Echec de creation du compte",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 6 caracteres",
+    "resetFailed": "Echec de l'envoi de l'e-mail de reinitialisation",
+    "deleteAccountFailed": "Echec de suppression du compte",
+    "invalidPromo": "Code invalide ou expire"
+  }
+}

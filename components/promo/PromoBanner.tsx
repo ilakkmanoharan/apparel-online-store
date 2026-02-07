@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 
 interface PromoBannerProps {
   title: string;
@@ -24,12 +24,12 @@ export default function PromoBanner({
       <p className="font-semibold">{title}</p>
       {description && <p className="mt-0.5 text-amber-800">{description}</p>}
       {ctaHref && (
-        <Link
+        <LocaleLink
           href={ctaHref}
           className="mt-2 inline-block font-medium text-amber-800 underline hover:no-underline"
         >
           {ctaLabel}
-        </Link>
+        </LocaleLink>
       )}
     </div>
   );

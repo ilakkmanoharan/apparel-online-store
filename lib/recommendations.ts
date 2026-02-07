@@ -39,9 +39,10 @@ export function addRecentlyViewed(productId: string): void {
  */
 export async function getRelatedProducts(
   productId: string,
-  category: string
+  category: string,
+  localeValue?: string
 ): Promise<Product[]> {
-  const all = await getProductsByCategory(category);
+  const all = await getProductsByCategory(category, localeValue);
   const filtered = all.filter((p) => p.id !== productId);
   return filtered.slice(0, MAX_RELATED);
 }

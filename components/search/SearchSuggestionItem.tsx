@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 
 interface Props {
   label: string;
@@ -9,12 +9,12 @@ interface Props {
 
 export default function SearchSuggestionItem({ label, href }: Props) {
   return (
-    <Link
+    <LocaleLink
       href={href}
       className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
     >
       {label}
-    </Link>
+    </LocaleLink>
   );
 }
 

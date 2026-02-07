@@ -1,15 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { departments } from "@/lib/config/departments";
+import LocaleLink from "@/components/common/LocaleLink";
+import { getDepartments } from "@/lib/config/departments";
+import { useTranslations } from "@/hooks/useTranslations";
 
 export default function DepartmentNav() {
+  const t = useTranslations();
+  const departments = getDepartments(t);
+
   return (
-    <nav aria-label="Departments" className="flex flex-wrap gap-4">
-      {departments.map((d) => (
-        <Link key={d.id} href={d.href} className="text-sm font-medium text-gray-700 hover:text-gray-900 hover:underline">
-          {d.name}
-        </Link>
+    <nav aria-label={t("nav.departments")} className="flex flex-wrap gap-4">
+      {departments.map((department) => (
+        <LocaleLink
+          key={department.id}
+          href={department.href}
+          className="text-sm font-medium text-gray-700 hover:text-gray-900 hover:underline"
+        >
+          {department.name}
+        </LocaleLink>
       ))}
     </nav>
   );

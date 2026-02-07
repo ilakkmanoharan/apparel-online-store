@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
+import { useTranslations } from "@/hooks/useTranslations";
 import { cn } from "@/lib/utils";
 
 interface PLPEmptyProps {
@@ -11,35 +12,25 @@ interface PLPEmptyProps {
 }
 
 export default function PLPEmpty({
-  message = "No products match your filters.",
+  message,
   showClearFilters,
   onClearFilters,
   className,
 }: PLPEmptyProps) {
+  const t = useTranslations();
+
   return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center py-16 px-4 text-center",
-        className
-      )}
-    >
-      <p className="text-gray-600 mb-4">{message}</p>
+    <div className={cn("flex flex-col items-center justify-center py-16 px-4 text-center", className)}>
+      <p className="text-gray-600 mb-4">{message ?? t("category.emptyFilters")}</p>
       <div className="flex flex-wrap justify-center gap-3">
         {showClearFilters && onClearFilters && (
-          <button
-            type="button"
-            onClick={onClearFilters}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-          >
-            Clear filters
+          <button type="button" onClick={onClearFilters} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+            {t("common.clearFilters")}
           </button>
         )}
-        <Link
-          href="/"
-          className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
-        >
-          Continue shopping
-        </Link>
+        <LocaleLink href="/" className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
+          {t("common.continueShopping")}
+        </LocaleLink>
       </div>
     </div>
   );

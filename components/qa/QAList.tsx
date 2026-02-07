@@ -1,8 +1,9 @@
 "use client";
 
+import { useTranslations } from "@/hooks/useTranslations";
+import { cn } from "@/lib/utils";
 import type { QAPair } from "@/types/qa";
 import QACard from "./QACard";
-import { cn } from "@/lib/utils";
 
 interface QAListProps {
   items: QAPair[];
@@ -11,12 +12,9 @@ interface QAListProps {
   className?: string;
 }
 
-export default function QAList({
-  items,
-  loading = false,
-  emptyMessage = "No questions yet. Be the first to ask.",
-  className,
-}: QAListProps) {
+export default function QAList({ items, loading = false, emptyMessage, className }: QAListProps) {
+  const t = useTranslations();
+
   if (loading) {
     return (
       <div className={cn("space-y-4", className)}>
@@ -28,9 +26,7 @@ export default function QAList({
   }
 
   if (items.length === 0) {
-    return (
-      <p className={cn("text-sm text-gray-500", className)}>{emptyMessage}</p>
-    );
+    return <p className={cn("text-sm text-gray-500", className)}>{emptyMessage ?? t("qa.empty")}</p>;
   }
 
   return (

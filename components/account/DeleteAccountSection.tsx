@@ -3,23 +3,29 @@
 import { useState } from "react";
 import Button from "@/components/common/Button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { useLocaleRouter } from "@/hooks/useLocaleRouter";
+import { useTranslations } from "@/hooks/useTranslations";
 import { auth } from "@/lib/firebase/config";
 
 export default function DeleteAccountSection() {
   const { user, logout } = useAuth();
-  const router = useRouter();
+  const router = useLocaleRouter();
+  const t = useTranslations();
   const [confirmText, setConfirmText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const confirmPhrase = "DELETE MY ACCOUNT";
+  const confirmPhrase = t("account.deleteConfirmPhrase");
   const canDelete = confirmText === confirmPhrase;
 
   const handleDelete = async () => {
-    if (!canDelete) return;
+    if (!canDelete) {
+      return;
+    }
+
     setLoading(true);
     setError(null);
+
     try {
       const token = user ? await auth.currentUser?.getIdToken() : null;
       const res = await fetch("/api/user/delete-account", {
@@ -30,12 +36,17 @@ export default function DeleteAccountSection() {
         },
         body: JSON.stringify({ confirm: confirmText }),
       });
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to delete account");
+
+      if (!res.ok) {
+        throw new Error(data.error ?? t("errors.deleteAccountFailed"));
+      }
+
       await logout();
       router.push("/");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to delete account");
+      setError(e instanceof Error ? e.message : t("errors.deleteAccountFailed"));
     } finally {
       setLoading(false);
     }
@@ -43,10 +54,11 @@ export default function DeleteAccountSection() {
 
   return (
     <section className="border border-red-200 rounded-lg p-4 bg-red-50/50">
-      <h2 className="text-lg font-semibold text-red-800 mb-2">Delete account</h2>
+      <h2 className="text-lg font-semibold text-red-800 mb-2">{t("account.deleteAccount")}</h2>
       <p className="text-sm text-gray-700 mb-4">
-        This action cannot be undone. All your data will be removed. Type{" "}
-        <strong>{confirmPhrase}</strong> to confirm.
+        {t("account.deleteDescription")}{" "}
+        <strong>{confirmPhrase}</strong>
+        {" "}{t("account.deleteToConfirm")}
       </p>
       <input
         type="text"
@@ -61,7 +73,7 @@ export default function DeleteAccountSection() {
         onClick={handleDelete}
         disabled={!canDelete || loading}
       >
-        {loading ? "Deleting…" : "Delete my account"}
+        {loading ? t("common.deleting") : t("account.deleteAccountCta")}
       </Button>
       {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
     </section>

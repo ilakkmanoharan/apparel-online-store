@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import type { Campaign } from "@/types/editorial";
 
 interface CampaignCardProps {
@@ -8,7 +8,7 @@ interface CampaignCardProps {
 
 export default function CampaignCard({ campaign }: CampaignCardProps) {
   return (
-    <Link href={`/campaigns/${campaign.slug}`} className="block border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+    <LocaleLink href={`/campaigns/${campaign.slug}`} className="block border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative aspect-video bg-gray-100">
         {campaign.imageUrl ? (
           <Image src={campaign.imageUrl} alt={campaign.title} fill className="object-cover" sizes="33vw" />
@@ -20,6 +20,6 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
         <h2 className="font-semibold text-lg">{campaign.title}</h2>
         {campaign.description && <p className="text-sm text-gray-600 mt-1 line-clamp-2">{campaign.description}</p>}
       </div>
-    </Link>
+    </LocaleLink>
   );
 }

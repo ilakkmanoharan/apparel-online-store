@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { Banner } from "@/types/editorial";
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 
 interface BannerCarouselProps {
   banners: Banner[];
@@ -24,9 +24,9 @@ export default function BannerCarousel({ banners, autoAdvanceMs = 5000, classNam
   return (
     <div className={"relative " + className}>
       {current.href ? (
-        <Link href={current.href}>
+        <LocaleLink href={current.href}>
           <img src={current.imageUrl} alt={current.imageAlt ?? current.title ?? "Banner"} className="w-full h-48 object-cover rounded" />
-        </Link>
+        </LocaleLink>
       ) : (
         <img src={current.imageUrl} alt={current.imageAlt ?? current.title ?? "Banner"} className="w-full h-48 object-cover rounded" />
       )}

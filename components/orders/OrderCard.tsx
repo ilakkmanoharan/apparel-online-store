@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import type { Order } from "@/types";
 import OrderStatusBadge from "./OrderStatusBadge";
 import TrackingInfo from "./TrackingInfo";
@@ -23,12 +23,12 @@ export default function OrderCard({ order }: OrderCardProps) {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-gray-600">Order</span>
-            <Link
+            <LocaleLink
               href={`/account/orders/${order.id}`}
               className="font-mono text-xs text-gray-900 underline"
             >
               #{order.id.slice(0, 8)}
-            </Link>
+            </LocaleLink>
           </div>
           <p className="text-gray-500">Placed on {createdLabel}</p>
         </div>
@@ -49,12 +49,12 @@ export default function OrderCard({ order }: OrderCardProps) {
           </span>
         </p>
         <div className="flex items-center gap-2">
-          <Link
+          <LocaleLink
             href={`/account/orders/${order.id}`}
             className="text-xs font-medium text-gray-900 underline"
           >
             View details
-          </Link>
+          </LocaleLink>
           <ReorderButton order={order} />
         </div>
       </footer>

@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { UserIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { useLocaleRouter } from "@/hooks/useLocaleRouter";
+import { useTranslations } from "@/hooks/useTranslations";
 
 export default function UserMenu() {
   const { user, logout } = useAuth();
-  const router = useRouter();
+  const router = useLocaleRouter();
+  const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -22,7 +24,7 @@ export default function UserMenu() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="p-2"
-        aria-label="User account"
+        aria-label={t("account.userMenu")}
       >
         <UserIcon className="w-6 h-6 text-gray-700" />
       </button>
@@ -34,45 +36,42 @@ export default function UserMenu() {
                 <p className="text-sm font-medium text-gray-900">{user.displayName || user.email}</p>
                 <p className="text-xs text-gray-500">{user.email}</p>
               </div>
-              <Link
+              <LocaleLink
                 href="/account"
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 onClick={() => setIsOpen(false)}
               >
-                My Account
-              </Link>
+                {t("account.myAccount")}
+              </LocaleLink>
               <button
                 onClick={handleLogout}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
-                Sign Out
+                {t("auth.signOut")}
               </button>
             </>
           ) : (
             <>
-              <Link
+              <LocaleLink
                 href="/login"
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 onClick={() => setIsOpen(false)}
               >
-                Sign In
-              </Link>
-              <Link
+                {t("auth.signIn")}
+              </LocaleLink>
+              <LocaleLink
                 href="/signup"
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 onClick={() => setIsOpen(false)}
               >
-                Sign Up
-              </Link>
+                {t("auth.signUp")}
+              </LocaleLink>
             </>
           )}
         </div>
       )}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-        />
+        <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/common/LocaleLink";
 import { formatPrice } from "@/lib/utils";
 import { Order } from "@/types";
 
@@ -24,9 +24,9 @@ export default function OrderList({ orders, loading }: OrderListProps) {
     return (
       <div className="text-center py-12 text-gray-600">
         <p className="mb-4">You haven&apos;t placed any orders yet.</p>
-        <Link href="/" className="text-gray-900 underline font-medium">
+        <LocaleLink href="/" className="text-gray-900 underline font-medium">
           Start Shopping
-        </Link>
+        </LocaleLink>
       </div>
     );
   }
@@ -35,7 +35,7 @@ export default function OrderList({ orders, loading }: OrderListProps) {
     <ul className="divide-y divide-gray-200">
       {orders.map((order) => (
         <li key={order.id} className="py-4">
-          <Link
+          <LocaleLink
             href={`/account/orders/${order.id}`}
             className="flex flex-wrap items-center justify-between gap-4 hover:bg-gray-50 -mx-2 px-2 py-2 rounded"
           >
@@ -50,7 +50,7 @@ export default function OrderList({ orders, loading }: OrderListProps) {
               <p className="font-semibold text-gray-900">{formatPrice(order.total)}</p>
               <p className="text-sm text-gray-500 capitalize">{order.status}</p>
             </div>
-          </Link>
+          </LocaleLink>
         </li>
       ))}
     </ul>

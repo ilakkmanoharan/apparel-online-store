@@ -1,13 +1,6 @@
-import Hero from "@/components/home/Hero";
-import FeaturedCategories from "@/components/home/FeaturedCategories";
-import FeaturedProducts from "@/components/home/FeaturedProducts";
+import { redirect } from "next/navigation";
+import { DEFAULT_LOCALE } from "@/lib/i18n/config";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col">
-      <Hero />
-      <FeaturedCategories />
-      <FeaturedProducts />
-    </div>
-  );
+export default function RootPage() {
+  redirect(`/${DEFAULT_LOCALE}`);
 }

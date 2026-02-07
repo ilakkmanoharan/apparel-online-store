@@ -1,9 +1,10 @@
 "use client";
 
-import { FilterState } from "@/lib/config/filters";
+import Button from "@/components/common/Button";
 import Checkbox from "@/components/common/Checkbox";
 import Input from "@/components/common/Input";
-import Button from "@/components/common/Button";
+import { useTranslations } from "@/hooks/useTranslations";
+import { FilterState } from "@/lib/config/filters";
 
 interface CategoryFiltersProps {
   filters: FilterState;
@@ -18,17 +19,15 @@ export default function CategoryFilters({
   availableSizes = [],
   availableColors = [],
 }: CategoryFiltersProps) {
+  const t = useTranslations();
+
   const toggleSize = (size: string) => {
-    const next = filters.sizes.includes(size)
-      ? filters.sizes.filter((s) => s !== size)
-      : [...filters.sizes, size];
+    const next = filters.sizes.includes(size) ? filters.sizes.filter((entry) => entry !== size) : [...filters.sizes, size];
     onFiltersChange({ ...filters, sizes: next });
   };
 
   const toggleColor = (color: string) => {
-    const next = filters.colors.includes(color)
-      ? filters.colors.filter((c) => c !== color)
-      : [...filters.colors, color];
+    const next = filters.colors.includes(color) ? filters.colors.filter((entry) => entry !== color) : [...filters.colors, color];
     onFiltersChange({ ...filters, colors: next });
   };
 
@@ -46,15 +45,13 @@ export default function CategoryFilters({
   return (
     <aside className="w-full md:w-56 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900">Filters</h3>
-        <Button variant="ghost" size="sm" onClick={clearFilters}>
-          Clear
-        </Button>
+        <h3 className="font-semibold text-gray-900">{t("category.filters")}</h3>
+        <Button variant="ghost" size="sm" onClick={clearFilters}>{t("common.clear")}</Button>
       </div>
 
       {availableSizes.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Size</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">{t("product.size")}</h4>
           <div className="flex flex-wrap gap-2">
             {availableSizes.map((size) => (
               <Checkbox
@@ -70,7 +67,7 @@ export default function CategoryFilters({
 
       {availableColors.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Color</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">{t("product.color")}</h4>
           <div className="flex flex-wrap gap-2">
             {availableColors.map((color) => (
               <Checkbox
@@ -85,40 +82,28 @@ export default function CategoryFilters({
       )}
 
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Price</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">{t("category.price")}</h4>
         <div className="flex gap-2 items-center">
           <Input
             type="number"
-            placeholder="Min"
+            placeholder={t("category.min")}
             value={filters.minPrice ?? ""}
-            onChange={(e) =>
-              onFiltersChange({
-                ...filters,
-                minPrice: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
+            onChange={(e) => onFiltersChange({ ...filters, minPrice: e.target.value ? Number(e.target.value) : undefined })}
           />
-          <span className="text-gray-400">–</span>
+          <span className="text-gray-400">-</span>
           <Input
             type="number"
-            placeholder="Max"
+            placeholder={t("category.max")}
             value={filters.maxPrice ?? ""}
-            onChange={(e) =>
-              onFiltersChange({
-                ...filters,
-                maxPrice: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
+            onChange={(e) => onFiltersChange({ ...filters, maxPrice: e.target.value ? Number(e.target.value) : undefined })}
           />
         </div>
       </div>
 
       <Checkbox
-        label="In stock only"
+        label={t("category.inStockOnly")}
         checked={filters.inStockOnly}
-        onChange={(e) =>
-          onFiltersChange({ ...filters, inStockOnly: e.target.checked })
-        }
+        onChange={(e) => onFiltersChange({ ...filters, inStockOnly: e.target.checked })}
       />
     </aside>
   );
