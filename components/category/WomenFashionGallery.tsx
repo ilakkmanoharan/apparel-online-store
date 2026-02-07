@@ -50,7 +50,7 @@ export default function WomenFashionGallery() {
         <div className="h-8 w-48 bg-gray-100 rounded mb-6 animate-pulse" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-            <div key={i} className="bg-gray-100 rounded-lg border border-gray-200 aspect-[3/4] animate-pulse" />
+            <div key={i} className="bg-gray-100 rounded-lg border border-gray-200 aspect-[4/3] animate-pulse" />
           ))}
         </div>
       </section>
@@ -81,7 +81,7 @@ export default function WomenFashionGallery() {
             key={image.id}
             className="group relative bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
           >
-            <div className="relative w-full aspect-[3/4] bg-gray-50 p-1">
+            <div className="relative w-full aspect-[4/3] bg-gray-50 p-1">
               <img
                 src={image.imageUrl}
                 alt={image.label || t("category.womenLook")}
