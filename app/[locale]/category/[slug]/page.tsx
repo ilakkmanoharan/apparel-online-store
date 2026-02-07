@@ -45,12 +45,12 @@ export default function CategoryPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 py-8">
         <h1 className="text-3xl font-bold mb-8 capitalize">{title}</h1>
         {slug === "women" && <WomenFashionGallery />}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="bg-white rounded-lg shadow-md h-96 animate-pulse" />
+            <div key={i} className="bg-white rounded-xl border border-gray-200 h-[450px] animate-pulse" />
           ))}
         </div>
       </div>
@@ -58,11 +58,11 @@ export default function CategoryPage({ params }: PageProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-6 py-8">
       <h1 className="text-3xl font-bold mb-8 capitalize">{title}</h1>
       {slug === "women" && <WomenFashionGallery />}
       {products.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

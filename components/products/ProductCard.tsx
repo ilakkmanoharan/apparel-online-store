@@ -42,24 +42,27 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <motion.div whileHover={{ y: -4 }} className="bg-white rounded-lg shadow-md overflow-hidden group">
+    <motion.div
+      whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" }}
+      className="bg-white rounded-xl border border-gray-200 overflow-hidden group h-full flex flex-col transition-shadow duration-300"
+    >
       <LocaleLink href={`/products/${product.id}`}>
-        <div className="relative aspect-square bg-gray-100 overflow-hidden">
+        <div className="relative aspect-[3/4] bg-gray-50 overflow-hidden p-4">
           {product.images[0] ? (
             <Image
               src={product.images[0]}
               alt={product.name}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-contain p-2 transition-transform duration-300"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400">{t("common.noImage")}</div>
           )}
           {discount > 0 && (
-            <span className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-sm font-semibold">-{discount}%</span>
+            <span className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1.5 rounded-md text-sm font-semibold shadow-sm">-{discount}%</span>
           )}
           <button
-            className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-4 right-4 p-2.5 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 hover:shadow-lg"
             onClick={(e) => {
               e.preventDefault();
             }}
@@ -70,11 +73,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </LocaleLink>
 
-      <div className="p-4">
+      <div className="p-5 flex flex-col flex-grow border-t border-gray-100">
         <LocaleLink href={`/products/${product.id}`}>
-          <h3 className="font-semibold text-gray-900 mb-2 hover:text-gray-600 transition-colors">{product.name}</h3>
+          <h3 className="font-semibold text-gray-900 mb-2 hover:text-gray-600 transition-colors line-clamp-2 min-h-[3rem]">{product.name}</h3>
         </LocaleLink>
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-4 mt-auto">
           <span className="text-lg font-bold text-gray-900">
             {formatPrice(product.price, currency, locale)}
           </span>
@@ -85,7 +88,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
         <button
-          className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md"
           onClick={handleAddToCart}
           disabled={!product.inStock || adding}
         >
