@@ -58,7 +58,7 @@ export default function WomenFashionGallery() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
           <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-gray-100">
-            <img src={hero.imageUrl} alt={hero.label || t("category.womenLook")} className="absolute inset-0 w-full h-full object-cover" loading="eager" />
+            <img src={hero.imageUrl} alt={hero.label || t("category.womenLook")} className="absolute inset-0 w-full h-full object-cover" loading="eager" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             {hero.label && (
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                 <p className="text-white text-sm">{hero.label}</p>
@@ -70,7 +70,7 @@ export default function WomenFashionGallery() {
         <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
           {rest.slice(0, 4).map((image) => (
             <div key={image.id} className="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-gray-100">
-              <img src={image.imageUrl} alt={image.label || t("category.womenLook")} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+              <img src={image.imageUrl} alt={image.label || t("category.womenLook")} className="absolute inset-0 w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             </div>
           ))}
         </div>
@@ -80,7 +80,7 @@ export default function WomenFashionGallery() {
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
           {rest.slice(4).map((image) => (
             <div key={image.id} className="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-gray-100">
-              <img src={image.imageUrl} alt={image.label || t("category.womenLook")} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+              <img src={image.imageUrl} alt={image.label || t("category.womenLook")} className="absolute inset-0 w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             </div>
           ))}
         </div>
