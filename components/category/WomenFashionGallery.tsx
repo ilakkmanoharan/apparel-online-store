@@ -21,7 +21,7 @@ export default function WomenFashionGallery() {
         }
 
         const data: WomenFashionImage[] = await res.json();
-        setImages(data);
+        setImages(data.filter((img) => img.imageUrl && img.imageUrl.startsWith("http")));
       } catch (error) {
         console.error("Error loading women fashion gallery:", error);
         setImages([]);

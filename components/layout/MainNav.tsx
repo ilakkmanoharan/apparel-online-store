@@ -18,7 +18,7 @@ export default function MainNav() {
       aria-label={t("nav.mainNavigation")}
     >
       {mainNavItems.map((item) => (
-        <div key={item.label} className="relative">
+        <div key={item.label}>
           <NavLink item={item} onHover={() => setActiveItem(item)} />
           <MegaMenu
             items={item.children || []}
