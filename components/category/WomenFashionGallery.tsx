@@ -48,9 +48,9 @@ export default function WomenFashionGallery() {
     return (
       <section className="mb-16">
         <div className="h-8 w-48 bg-gray-100 rounded mb-6 animate-pulse" />
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-            <div key={i} className="bg-gray-100 rounded-xl border border-gray-200 h-80 animate-pulse" />
+            <div key={i} className="bg-gray-100 rounded-lg border border-gray-200 aspect-[3/4] animate-pulse" />
           ))}
         </div>
       </section>
@@ -75,24 +75,24 @@ export default function WomenFashionGallery() {
   return (
     <section className="mb-16">
       <h2 className="text-3xl font-bold mb-6">{t("category.womenGallery")}</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {images.map((image) => (
           <div
             key={image.id}
-            className="group relative bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+            className="group relative bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
           >
-            <div className="relative w-full h-80 bg-gray-50 p-4 flex items-center justify-center">
+            <div className="relative w-full aspect-[3/4] bg-gray-50 p-1">
               <img
                 src={image.imageUrl}
                 alt={image.label || t("category.womenLook")}
-                className="max-w-full max-h-full object-contain transition-transform duration-300"
+                className="w-full h-full object-contain"
                 loading="lazy"
                 onError={() => handleImageError(image.id, image.imageUrl)}
               />
             </div>
             {image.label && (
-              <div className="p-3 border-t border-gray-100">
-                <p className="text-sm text-gray-700 text-center truncate">{image.label}</p>
+              <div className="px-2 py-1.5 border-t border-gray-100 bg-white">
+                <p className="text-xs text-gray-700 text-center truncate">{image.label}</p>
               </div>
             )}
           </div>
