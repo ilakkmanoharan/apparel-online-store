@@ -25,8 +25,8 @@ export interface AdminPromo {
   updatedAt: Date;
 }
 
-function mapPromo(docSnap: { id: string; data: () => Record<string, unknown> }): AdminPromo {
-  const d = docSnap.data();
+function mapPromo(docSnap: { id: string; data: Record<string, unknown> }): AdminPromo {
+  const d = docSnap.data;
   return {
     id: docSnap.id,
     code: (d.code as string) ?? "",
@@ -43,14 +43,16 @@ function mapPromo(docSnap: { id: string; data: () => Record<string, unknown> }):
 export async function listAdminPromos(limit = 50): Promise<AdminPromo[]> {
   const q = query(collection(db, COLLECTION), orderBy("code", "asc"));
   const snap = await getDocs(q);
-  return snap.docs.slice(0, limit).map((d) => mapPromo({ id: d.id, data: d.data() }));
+  return snap.docs
+    .slice(0, limit)
+    .map((d) => mapPromo({ id: d.id, data: d.data() as Record<string, unknown> }));
 }
 
 export async function getAdminPromo(id: string): Promise<AdminPromo | null> {
   const ref = doc(db, COLLECTION, id);
   const snap = await getDoc(ref);
   if (!snap.exists()) return null;
-  return mapPromo({ id: snap.id, data: snap.data() });
+  return mapPromo({ id: snap.id, data: snap.data() as Record<string, unknown> });
 }
 
 export async function createAdminPromo(data: Omit<AdminPromo, "id" | "createdAt" | "updatedAt">): Promise<string> {

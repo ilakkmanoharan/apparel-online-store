@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createRefund } from "@/lib/stripe/refunds";
 import { getAdminOrder } from "@/lib/admin/orders";
 import { getFirebaseAdmin } from "@/lib/firebase/admin";
-import { stripe } from "@/lib/stripe/server";
+import { getStripe } from "@/lib/stripe/server";
 import { LOCALE_HEADER_NAME, isLocale } from "@/lib/i18n/config";
 import { getLocaleFromRequest } from "@/lib/i18n/request";
 import type { Locale } from "@/types/i18n";
@@ -110,13 +110,13 @@ export async function POST(req: NextRequest) {
     let paymentIntentId = bodyPaymentIntentId ?? (order as { paymentIntentId?: string }).paymentIntentId;
     if (!paymentIntentId && order.stripeSessionId) {
       try {
-        const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId, {
+        const session = await getStripe().checkout.sessions.retrieve(order.stripeSessionId, {
           expand: ["payment_intent"],
         });
         const pi = session.payment_intent;
-        paymentIntentId = typeof pi === "string" ? pi : pi?.id ?? null;
+        paymentIntentId = typeof pi === "string" ? pi : pi?.id ?? undefined;
       } catch {
-        paymentIntentId = null;
+        paymentIntentId = undefined;
       }
     }
     if (!paymentIntentId) {

@@ -138,6 +138,11 @@
     "noProducts": "No products found in this category.",
     "womenGallery": "Women's Fashion Gallery",
     "womenLook": "Women fashion look",
+    "gallerySponsored": "Sponsored",
+    "galleryExclusive": "Store exclusive",
+    "galleryVipApplied": "VIP applied",
+    "galleryMoreColors": "+{count} more",
+    "galleryNew": "NEW!",
     "slugs": {
       "women": "Women",
       "men": "Men",

@@ -25,8 +25,6 @@ export async function POST(request: Request) {
       discountPercent: Number(discountPercent),
       minOrder: minOrder != null ? Number(minOrder) : undefined,
       active: active ?? true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
     return NextResponse.json({ id });
   } catch (err) {

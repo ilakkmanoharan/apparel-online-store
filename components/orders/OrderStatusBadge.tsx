@@ -8,16 +8,17 @@ interface OrderStatusBadgeProps {
   className?: string;
 }
 
-function getStatusVariant(status: OrderStatus): "default" | "success" | "warning" | "danger" {
+/** Maps order status to Badge variants (default | sale | new | outline). */
+function getStatusVariant(status: OrderStatus): "default" | "sale" | "new" | "outline" {
   switch (status) {
     case "delivered":
-      return "success";
+      return "new"; // green
     case "processing":
     case "shipped":
     case "needs_review":
-      return "warning";
+      return "outline";
     case "cancelled":
-      return "danger";
+      return "sale"; // red
     case "pending":
     default:
       return "default";

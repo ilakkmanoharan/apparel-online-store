@@ -4,9 +4,11 @@ import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import type { BreadcrumbItem } from "@/components/navigation/Breadcrumb";
 import { getDepartmentBySlug } from "@/lib/config/departments";
+import { useTranslations } from "@/hooks/useTranslations";
 
 export function useBreadcrumb(): BreadcrumbItem[] {
   const pathname = usePathname();
+  const t = useTranslations();
   return useMemo(() => {
     const items: BreadcrumbItem[] = [{ label: "Home", href: "/" }];
     if (!pathname || pathname === "/") return items;
@@ -16,7 +18,7 @@ export function useBreadcrumb(): BreadcrumbItem[] {
       acc += "/" + segments[i];
       const slug = segments[i];
       if (slug === "category" && segments[i + 1]) {
-        const dept = getDepartmentBySlug(segments[i + 1]);
+        const dept = getDepartmentBySlug(segments[i + 1], t);
         items.push({ label: dept?.name ?? segments[i + 1], href: acc + "/" + segments[i + 1] });
         i++;
         acc += "/" + segments[i];
@@ -38,5 +40,5 @@ export function useBreadcrumb(): BreadcrumbItem[] {
       }
     }
     return items;
-  }, [pathname]);
+  }, [pathname, t]);
 }

@@ -138,6 +138,11 @@
     "noProducts": "Keine Produkte in dieser Kategorie gefunden.",
     "womenGallery": "Damenmode Galerie",
     "womenLook": "Damenmode Look",
+    "gallerySponsored": "Gesponsert",
+    "galleryExclusive": "Exklusiv im Store",
+    "galleryVipApplied": "VIP angewendet",
+    "galleryMoreColors": "+{count} weitere",
+    "galleryNew": "NEU!",
     "slugs": {
       "women": "Damen",
       "men": "Herren",

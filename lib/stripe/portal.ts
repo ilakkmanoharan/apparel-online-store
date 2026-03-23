@@ -1,10 +1,10 @@
-import { stripe } from "./server";
+import { getStripe } from "./server";
 
 export async function createCustomerPortalSession(
   customerId: string,
   returnUrl: string
 ) {
-  return stripe.billingPortal.sessions.create({
+  return getStripe().billingPortal.sessions.create({
     customer: customerId,
     return_url: returnUrl,
   });

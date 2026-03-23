@@ -48,8 +48,9 @@ export function localizeProduct(
   localeValue?: string
 ): Product {
   const locale = normalizeLocale(localeValue);
-  const localizedName = resolveLocalizedField(product, "name", locale);
-  const localizedDescription = resolveLocalizedField(product, "description", locale);
+  const record = product as LocalizedRecord;
+  const localizedName = resolveLocalizedField(record, "name", locale);
+  const localizedDescription = resolveLocalizedField(record, "description", locale);
 
   return {
     ...(product as Product),

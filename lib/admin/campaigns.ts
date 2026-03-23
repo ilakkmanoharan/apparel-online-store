@@ -14,8 +14,8 @@ import type { Campaign } from "@/types/editorial";
 
 const COLLECTION = "campaigns";
 
-function mapCampaign(docSnap: { id: string; data: () => Record<string, unknown> }): Campaign {
-  const d = docSnap.data();
+function mapCampaign(docSnap: { id: string; data: Record<string, unknown> }): Campaign {
+  const d = docSnap.data;
   return {
     id: docSnap.id,
     slug: d.slug as string,
@@ -34,14 +34,16 @@ function mapCampaign(docSnap: { id: string; data: () => Record<string, unknown> 
 export async function listAdminCampaigns(limit = 50): Promise<Campaign[]> {
   const q = query(collection(db, COLLECTION), orderBy("startDate", "desc"));
   const snap = await getDocs(q);
-  return snap.docs.slice(0, limit).map((d) => mapCampaign({ id: d.id, data: d.data() }));
+  return snap.docs
+    .slice(0, limit)
+    .map((d) => mapCampaign({ id: d.id, data: d.data() as Record<string, unknown> }));
 }
 
 export async function getAdminCampaign(id: string): Promise<Campaign | null> {
   const ref = doc(db, COLLECTION, id);
   const snap = await getDoc(ref);
   if (!snap.exists()) return null;
-  return mapCampaign({ id: snap.id, data: snap.data() });
+  return mapCampaign({ id: snap.id, data: snap.data() as Record<string, unknown> });
 }
 
 export async function createAdminCampaign(data: Omit<Campaign, "id" | "createdAt" | "updatedAt">): Promise<string> {

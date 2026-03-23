@@ -79,11 +79,16 @@ export async function getRecommendations(
   }
 
   // Sort by score descending, then by reason (frequently_bought_together first)
-  const reasonOrder = { frequently_bought_together: 0, similar: 1 } as const;
+  const reasonOrder: Record<ProductRecommendation["reason"], number> = {
+    frequently_bought_together: 0,
+    similar: 1,
+    recently_viewed: 2,
+    trending: 2,
+  };
   result.sort((a, b) => {
     const scoreDiff = (b.score ?? 0) - (a.score ?? 0);
     if (scoreDiff !== 0) return scoreDiff;
-    return (reasonOrder[a.reason] ?? 2) - (reasonOrder[b.reason] ?? 2);
+    return reasonOrder[a.reason] - reasonOrder[b.reason];
   });
 
   return result.slice(0, MAX_RECOMMENDATIONS);

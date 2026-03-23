@@ -1,76 +1,25 @@
 import { NextResponse } from "next/server";
+import {
+  SHOWCASE_DETAILS_BY_ID,
+  SHOWCASE_DETAILS_BY_ORDER,
+  WOMEN_GALLERY_SHOWCASE,
+} from "@/lib/data/womenGalleryShowcase";
 import { getAdminDb } from "@/lib/firebase/admin";
+import type { WomenFashionImage } from "@/lib/firebase/womenFashion";
 import * as admin from "firebase-admin";
 
 export const dynamic = "force-dynamic";
 
-// Fallback sample images from Unsplash (free, publicly accessible)
-const FALLBACK_IMAGES = [
-  {
-    id: "look-1",
-    imageUrl: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800&q=80",
-    storagePath: "",
-    category: "women",
-    label: "Women fashion look 1",
-    order: 1,
-  },
-  {
-    id: "look-2",
-    imageUrl: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=800&q=80",
-    storagePath: "",
-    category: "women",
-    label: "Women fashion look 2",
-    order: 2,
-  },
-  {
-    id: "look-3",
-    imageUrl: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&q=80",
-    storagePath: "",
-    category: "women",
-    label: "Women fashion look 3",
-    order: 3,
-  },
-  {
-    id: "look-4",
-    imageUrl: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80",
-    storagePath: "",
-    category: "women",
-    label: "Women fashion look 4",
-    order: 4,
-  },
-  {
-    id: "look-5",
-    imageUrl: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80",
-    storagePath: "",
-    category: "women",
-    label: "Women fashion look 5",
-    order: 5,
-  },
-  {
-    id: "look-6",
-    imageUrl: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80",
-    storagePath: "",
-    category: "women",
-    label: "Women fashion look 6",
-    order: 6,
-  },
-  {
-    id: "look-7",
-    imageUrl: "https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=800&q=80",
-    storagePath: "",
-    category: "women",
-    label: "Women fashion look 7",
-    order: 7,
-  },
-  {
-    id: "look-8",
-    imageUrl: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80",
-    storagePath: "",
-    category: "women",
-    label: "Women fashion look 8",
-    order: 8,
-  },
-];
+const FALLBACK_IMAGES: WomenFashionImage[] = WOMEN_GALLERY_SHOWCASE;
+
+function enrichGalleryBase(base: WomenFashionImage): WomenFashionImage {
+  const byId = SHOWCASE_DETAILS_BY_ID[base.id];
+  const ord = base.order;
+  const byOrder =
+    typeof ord === "number" ? SHOWCASE_DETAILS_BY_ORDER[ord] : undefined;
+  const extra = byId ?? byOrder;
+  return extra ? { ...base, ...extra } : base;
+}
 
 export async function GET() {
   try {
@@ -111,14 +60,16 @@ export async function GET() {
 
         if (!imageUrl) return null;
 
-        return {
+        const base: WomenFashionImage = {
           id: doc.id,
           imageUrl,
-          storagePath: data.storagePath,
+          storagePath: typeof data.storagePath === "string" ? data.storagePath : "",
           category: data.category ?? "women",
           label: data.label,
-          order: data.order,
+          order: typeof data.order === "number" ? data.order : undefined,
         };
+
+        return enrichGalleryBase(base);
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
 

@@ -4,8 +4,8 @@ import type { StoreLocation, StoreHours } from "@/types/store";
 
 const COLLECTION = "stores";
 
-function mapStore(docSnap: { id: string; data: () => Record<string, unknown> }): StoreLocation {
-  const d = docSnap.data();
+function mapStore(docSnap: { id: string; data: Record<string, unknown> }): StoreLocation {
+  const d = docSnap.data;
   return {
     id: docSnap.id,
     name: d.name as string,
@@ -31,12 +31,12 @@ export async function getStoresFromFirestore(activeOnly = true): Promise<StoreLo
     q = query(collection(db, COLLECTION), where("active", "==", true), orderBy("name"));
   }
   const snap = await getDocs(q);
-  return snap.docs.map((d) => mapStore({ id: d.id, data: d.data() }));
+  return snap.docs.map((d) => mapStore({ id: d.id, data: d.data() as Record<string, unknown> }));
 }
 
 export async function getStoreByIdFromFirestore(id: string): Promise<StoreLocation | null> {
   const ref = doc(db, COLLECTION, id);
   const snap = await getDoc(ref);
   if (!snap.exists()) return null;
-  return mapStore({ id: snap.id, data: snap.data() });
+  return mapStore({ id: snap.id, data: snap.data() as Record<string, unknown> });
 }

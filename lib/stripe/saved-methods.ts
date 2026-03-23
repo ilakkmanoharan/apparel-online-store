@@ -1,8 +1,8 @@
-import { stripe } from "@/lib/stripe/server";
+import { getStripe } from "@/lib/stripe/server";
 import type { PaymentMethod } from "@/types/payment";
 
 export async function getSavedPaymentMethods(customerId: string): Promise<PaymentMethod[]> {
-  const methods = await stripe.paymentMethods.list({
+  const methods = await getStripe().paymentMethods.list({
     customer: customerId,
     type: "card",
   });

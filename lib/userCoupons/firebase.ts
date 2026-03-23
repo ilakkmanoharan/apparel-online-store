@@ -15,8 +15,8 @@ import type { UserCoupon } from "@/types/userCoupon";
 
 const COLLECTION = "userCoupons";
 
-function mapDoc(docSnap: { id: string; data: () => Record<string, unknown> }): UserCoupon {
-  const d = docSnap.data();
+function mapDoc(docSnap: { id: string; data: Record<string, unknown> }): UserCoupon {
+  const d = docSnap.data;
   return {
     id: docSnap.id,
     userId: d.userId as string,
@@ -40,7 +40,7 @@ export async function getUserCoupons(userId: string): Promise<UserCoupon[]> {
     orderBy("createdAt", "desc")
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => mapDoc({ id: d.id, data: d.data() }));
+  return snap.docs.map((d) => mapDoc({ id: d.id, data: d.data() as Record<string, unknown> }));
 }
 
 export async function getUserCouponByCode(userId: string, code: string): Promise<UserCoupon | null> {
@@ -52,7 +52,7 @@ export async function getUserCouponByCode(userId: string, code: string): Promise
   );
   const snap = await getDocs(q);
   if (snap.empty) return null;
-  return mapDoc({ id: snap.docs[0].id, data: snap.docs[0].data() });
+  return mapDoc({ id: snap.docs[0].id, data: snap.docs[0].data() as Record<string, unknown> });
 }
 
 export async function incrementCouponUsage(couponId: string): Promise<void> {

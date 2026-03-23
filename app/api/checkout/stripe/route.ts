@@ -36,7 +36,7 @@
  * @see lib/firebase/orders.ts - handleStripeWebhookEvent for order creation
  */
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe/server";
+import { getStripe } from "@/lib/stripe/server";
 import { CartItem, Address } from "@/types";
 import { CompactCartItem } from "@/types/checkout";
 import { getProductById } from "@/lib/firebase/products";
@@ -299,7 +299,7 @@ export async function POST(req: NextRequest) {
       body.successUrl || `${baseUrl}${DEFAULT_SUCCESS_PATH}?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = body.cancelUrl || `${baseUrl}${DEFAULT_CANCEL_PATH}`;
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,

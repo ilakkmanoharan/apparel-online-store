@@ -1,3 +1,4 @@
+import type { firestore } from "firebase-admin";
 import { getAdminDb } from "@/lib/firebase/admin";
 import type { Order } from "@/types";
 
@@ -17,7 +18,7 @@ export async function getOrdersForExport(
   const db = await getAdminDb();
   if (!db) return [];
 
-  let ref: firestore.Query = db.collection("orders");
+  let ref: firestore.Query<firestore.DocumentData> = db.collection("orders");
   if (opts.status) ref = ref.where("status", "==", opts.status);
   ref = ref.orderBy("createdAt", "desc");
   const limit = opts.limit ?? 1000;

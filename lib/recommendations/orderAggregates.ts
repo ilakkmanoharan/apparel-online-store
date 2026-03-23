@@ -58,13 +58,13 @@ async function refreshAggregates(): Promise<void> {
 
   popularityMap = newPopularity;
   pairCountMap = new Map();
-  for (const [key, count] of newPairs) {
+  newPairs.forEach((count, key) => {
     const [a, b] = key.split(":");
     if (!pairCountMap.has(a)) pairCountMap.set(a, new Map());
     pairCountMap.get(a)!.set(b, count);
     if (!pairCountMap.has(b)) pairCountMap.set(b, new Map());
     pairCountMap.get(b)!.set(a, count);
-  }
+  });
   cachedAt = Date.now();
 }
 

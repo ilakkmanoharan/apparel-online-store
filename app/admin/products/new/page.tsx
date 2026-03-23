@@ -22,8 +22,6 @@ export default function AdminNewProductPage() {
       inStock: data.inStock ?? true,
       stockCount: data.stockCount ?? 0,
       featured: data.featured ?? false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
     router.push(`/admin/products/${id}`);
   };

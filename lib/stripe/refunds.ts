@@ -1,4 +1,5 @@
-import { stripe } from "./server";
+import type Stripe from "stripe";
+import { getStripe } from "./server";
 
 export type RefundReason =
   | "duplicate"
@@ -13,7 +14,7 @@ export interface CreateRefundOptions {
 }
 
 export async function createRefund(options: CreateRefundOptions) {
-  const params: Parameters<typeof stripe.refunds.create>[0] = {
+  const params: Stripe.RefundCreateParams = {
     payment_intent: options.paymentIntentId,
     reason: options.reason ?? "requested_by_customer",
     metadata: options.metadata,
@@ -21,13 +22,13 @@ export async function createRefund(options: CreateRefundOptions) {
   if (options.amount != null && options.amount > 0) {
     params.amount = options.amount;
   }
-  return stripe.refunds.create(params);
+  return getStripe().refunds.create(params);
 }
 
 export async function listRefunds(paymentIntentId: string) {
-  return stripe.refunds.list({ payment_intent: paymentIntentId });
+  return getStripe().refunds.list({ payment_intent: paymentIntentId });
 }
 
 export async function getRefund(refundId: string) {
-  return stripe.refunds.retrieve(refundId);
+  return getStripe().refunds.retrieve(refundId);
 }

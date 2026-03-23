@@ -40,8 +40,20 @@ export default function StoreLocatePage() {
     return list;
   }, [stores, filters]);
 
-  const cities = useMemo(() => [...new Set(stores.map((store) => store.city).filter(Boolean))].sort(), [stores]);
-  const states = useMemo(() => [...new Set(stores.map((store) => store.state).filter(Boolean))].sort(), [stores]);
+  const cities = useMemo(
+    () =>
+      Array.from(
+        new Set(stores.map((store) => store.city).filter((c): c is string => Boolean(c)))
+      ).sort(),
+    [stores]
+  );
+  const states = useMemo(
+    () =>
+      Array.from(
+        new Set(stores.map((store) => store.state).filter((s): s is string => Boolean(s)))
+      ).sort(),
+    [stores]
+  );
 
   if (loading) {
     return (

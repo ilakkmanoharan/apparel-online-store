@@ -7,6 +7,16 @@ export interface Department {
   order: number;
 }
 
+/** Static English labels for hooks and admin (no i18n). Matches routing used by getDepartments. */
+export const departments: Department[] = [
+  { id: "women", name: "Women", slug: "women", href: "/category/women", order: 1 },
+  { id: "men", name: "Men", slug: "men", href: "/category/men", order: 2 },
+  { id: "kids", name: "Kids", slug: "kids", href: "/category/kids", order: 3 },
+  { id: "home", name: "Home", slug: "home", href: "/category/home", order: 4 },
+  { id: "beauty", name: "Beauty", slug: "beauty", href: "/category/beauty", order: 5 },
+  { id: "sale", name: "Sale", slug: "sale", href: "/sale", order: 6 },
+];
+
 export function getDepartments(t: (key: string) => string): Department[] {
   return [
     { id: "women", name: t("nav.women"), slug: "women", href: "/category/women", order: 1 },

@@ -18,8 +18,6 @@ export default function AdminNewCampaignPage() {
       endDate: data.endDate ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       blocks: data.blocks ?? [],
       active: data.active ?? true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
     router.push(`/admin/campaigns/${id}`);
   };

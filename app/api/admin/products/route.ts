@@ -35,8 +35,6 @@ export async function POST(request: Request) {
       inStock: inStock ?? true,
       stockCount: stockCount ?? 0,
       featured: featured ?? false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
     return NextResponse.json({ id });
   } catch (err) {

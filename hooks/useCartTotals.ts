@@ -8,13 +8,12 @@ import { MIN_CART_FOR_FREE_SHIPPING } from "@/lib/constants";
 
 export function useCartTotals() {
   const items = useCartStore((s) => s.items);
-  const appliedPromo = usePromoStore((s) => s.appliedPromo);
+  const discountPercent = usePromoStore((s) => s.discountPercent);
 
   return useMemo(() => {
-    const discountPercent = appliedPromo?.discountPercent ?? 0;
     return calculateCartTotals(items, {
-      discountPercent,
+      discountPercent: discountPercent ?? 0,
       freeShippingThreshold: MIN_CART_FOR_FREE_SHIPPING,
     });
-  }, [items, appliedPromo?.discountPercent]);
+  }, [items, discountPercent]);
 }
